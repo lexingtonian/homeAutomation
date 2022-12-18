@@ -1,0 +1,29 @@
+#Home automation config file
+#Structure: keyword value value value ....
+#
+#Device  name ip_address type nbr_of_on_hours max_price min_price
+#where
+# type is the kind of device in question, such as switch or meter
+# nbr_of_on_hours is the nbc of ours the device needs to stay on in a day
+# max_price is the electricity price above which the device will never be turned on
+# min_price is the electricity price below which the device will be always on
+# max an min will not add/reduce hours on time!
+#
+Device Tepseli switch 192.168.1.4 4 99.9 0.7
+Device Mittari meter 192.168.1.5 0 0 0
+Device Dummy meter 192.168.1.6 3 0 0
+#
+#You can create meter => switch pairs as follows:
+#Pair meter switch on_bracket
+#For example:
+#Pair Meter Switch 0 18   -- turns the switch on if temp is between 0 - 18
+#Pairing will override spot data!??
+Pair Mittari Tepseli 0 35
+#
+#
+#Email settings; password is a user prompt
+Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com
+#
+#Common update_interval_in_sec daytime_tax nighttime_tax
+Common 5 0.033728 0.014508
+
