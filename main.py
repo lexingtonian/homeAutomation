@@ -29,21 +29,16 @@ def printDeviceDayPlan(msd, d):
     print(str2)
 
 
-#todo: maybe to be used
+#Readining meters in a separate thread
 def thread_function(name):
-    #print("Threading ....")
-    #name = input('What is your name?\n')
-    #print(name)
     while True:
         time.sleep(1)
         for x in shellyDevices:
             if x.isMeter():
-                t=x.getTemperature()
-                #print("Temp: ",t)
+                x.getTemperature()
         global stopThreads
         if stopThreads:
             break
-
 
 
 def refreshSpotData(mySpotData):
@@ -58,13 +53,11 @@ def refreshSpotData(mySpotData):
 shellyDevices = []
 shellyDevicePairs= []
 
-
-
 #Get password for email
 try:
     passwrd = getpass.getpass()
 except Exception as error:
-    print('ERROR', error)
+    print('ERROR in password assignment: ', error)
 
 #read config file
 if (True):
@@ -141,6 +134,7 @@ while True:
     print("In the loop #: ",loop, "at ", nowTime.getCurrentSystemTimeString())
     time.sleep(updateInterval)
     #read temperatures from each meter and update them for those objects
+    #currently implemented in a separate thread and thus commented away here
     #for x in shellyDevices:
     #    if x.isMeter():
     #        x.getTemperature()
@@ -252,15 +246,15 @@ while True:
 
             elif command == "help":
                 help = "These are the available commands:\n"
-                help = help + "system       status \n"
+                help = help + "system status \n"
                 #help = help + "            reset \n"
-                help = help + "                 shutdown \n"
-                help = help + "                 prices \n"
-                help = help + "                 refresh \n"
-                help = help + "                 help \n"
+                help = help + "system shutdown \n"
+                help = help + "system prices \n"
+                help = help + "system refresh \n"
+                help = help + "system help \n"
                 help = help + "------------------------------------------------ \n"
-                help = help + "devicename       turnon \n"
-                help = help + "                     turnoff \n"
+                help = help + "devicename systemturnon \n"
+                help = help + "devicename turnoff \n"
                 email.sendMail("Home Automation System Help", help)
                 email.resetCommandQueue()
 
@@ -271,7 +265,7 @@ while True:
                 if command == "turnon":
                     x.turnOn()
                     #send a report after a succesful state change
-                    status = "State changed \n"
+                    status = "State changed, "+ x.name + " turned on\n"
                     for x in shellyDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
@@ -279,7 +273,7 @@ while True:
                 elif command == "turnoff":
                     x.turnOff()
                     #send a report after a succesful state change
-                    status = "State changed \n"  
+                    status = "State changed, "+ x.name + " turned off\n"
                     for x in shellyDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
