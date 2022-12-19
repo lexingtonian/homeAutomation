@@ -4,6 +4,7 @@ import json
 import time
 from datetime import datetime
 from dateTimeConversions import MyDateTime
+from debugTools import *
 
 class ShellyDevice:
     address = "NotSpecified"
@@ -42,9 +43,9 @@ class ShellyDevice:
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccesful = True
             self.lastUpdated = datetime.now()
-            print("A Shelly device ", name, "succesfully contacted at the address ", address)
+            printOnTerminal("A Shelly device " + name + " succesfully contacted at the address " + address)
         except:
-            print("A Shelly device ", name, "cannot be reached at the address ", address)
+            printOnTerminal("A Shelly device " + name + " cannot be reached at the address "+ address)
             self.lastConnectionSuccesful = False
             self.alive = False
 
@@ -64,7 +65,7 @@ class ShellyDevice:
             self.isOn = True
         except:
             self.lastConnectionSuccesful = False
-            print("A Shelly device ", self.name, "cannot be turned on at the address ", self.address)
+            printOnTerminal("A Shelly device " + self.name + "cannot be turned on at the address " + self.address)
 
     def turnOff(self):
         # Make a new connection:
@@ -82,7 +83,7 @@ class ShellyDevice:
             self.isOn = False
         except:
             self.lastConnectionSuccesful = False
-            print("A Shelly device ", self.name, "cannot be turned off at the address ", self.address)
+            printOnTerminal("A Shelly device " + self.name + "cannot be turned off at the address " + self.address)
 
     #get temperature and update humidity and battery status
     def getTemperature(self):
@@ -98,7 +99,7 @@ class ShellyDevice:
             self.temperature = float(data['tmp']['value'])
             self.humidity = float(data['hum']['value'])
             self.battery = float(data['bat']['value'])
-            print("A Shelly device ", self.name, "temperature at the address ", self.address, " is ", self.temperature, "and  humidity is ", self.humidity, )
+            printOnTerminal("A Shelly device " + self.name + "temperature at the address " + self.address + " is " + str(self.temperature) + "and  humidity is "+ str(self.humidity) )
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccesful=True
             return self.temperature
@@ -138,7 +139,7 @@ class ShellyDevice:
         return report
 
     def testMe(self):
-        print(str(self.device.status()))
+        printOnTerminal(str(self.device.status()))
 
     def isSwitch(self):
         if self.type == "switch":

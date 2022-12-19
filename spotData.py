@@ -1,6 +1,8 @@
 import requests
 import json
 from dateTimeConversions import MyDateTime
+from debugTools import *
+
 SPOTDATAURL = "https://api.spot-hinta.fi/Today"
 
 #https://api.spot-hinta.fi/Today (tämän päivän hinnat, mitä pienempi "Rank" lukema, sitä halvempi tunti)
@@ -46,13 +48,13 @@ class SpotData:
         try:
             api_response = requests.get(SPOTDATAURL)
         except:
-            print("ERROR: Cannot open ", SPOTDATAURL)
+            printOnTerminal("ERROR: Cannot open " + SPOTDATAURL)
             return
 
         if (api_response.status_code == 200):
             self.status = True
         else:
-            print("ERROR; api_response:", api_response, ".")
+            printOnTerminal("ERROR; api_response:" + api_response + ".")
             return
 
         self.data = api_response.text
@@ -105,11 +107,11 @@ class SpotData:
     #for debugging
     def printSpotDataArray(self):
 
-        print("SpotData: ")
+        printOnTerminal("SpotData: ")
         if self.status == False:
             return
         for x in range(24):
-            print("Rank: ", self.spotItemArray[x].rank, " Hour: ", self.spotItemArray[x].hour, " Price: ", self.spotItemArray[x].price)
+            printOnTerminal("Rank: " + str(self.spotItemArray[x].rank) + " Hour: "+ str(self.spotItemArray[x].hour) + " Price: " +  str(self.spotItemArray[x].price))
 
     def createSpotDataReport(self):
         report = "Spot Data: \n"

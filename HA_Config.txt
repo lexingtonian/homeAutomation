@@ -1,29 +1,36 @@
-#Home automation config file
-#Structure: keyword value value value ....
+# Home automation config file
+# # starts a comment line that will be ignored
+# Structure: keyword value value value ....
+# Note no punctuation; just a space between terms
+# CAP vs not is not significant
 #
-#Device  name ip_address type nbr_of_on_hours max_price min_price
-#where
-# type is the kind of device in question, such as switch or meter
-# nbr_of_on_hours is the nbc of ours the device needs to stay on in a day
-# max_price is the electricity price above which the device will never be turned on
-# min_price is the electricity price below which the device will be always on
-# max an min will not add/reduce hours on time!
+# Device  name ip_address type nbr_of_on_hours max_price min_price
+# where
+# -name is the name you will be using addrssing the device
+# -ip_address is the IP address of that device
+# -type is the kind of device in question; switch or meter
+# -nbr_of_on_hours is the nbr of hours the device needs to stay on in a day; this can be overriden by creating a connection between a meter and a device
+# -max_price is the electricity price above which the device will never be turned on
+# -min_price is the electricity price below which the device will be always on
+# -max an min will not add/reduce hours on time!
 #
 Device Tepseli switch 192.168.1.4 4 99.9 0.7
 Device Mittari meter 192.168.1.5 0 0 0
 Device Dummy meter 192.168.1.6 3 0 0
 #
-#You can create meter => switch pairs as follows:
-#Pair meter switch on_bracket
-#For example:
-#Pair Meter Switch 0 18   -- turns the switch on if temp is between 0 - 18
-#Pairing will override spot data!??
+# You can create meter => switch pairs as follows:
+# Pair meter switch on_bracket
+# For example:
+# Pair Meter Switch 0 18   -- turns the switch on if temp is between 0 - 18
+# Pairing will override spot data
 Pair Mittari Tepseli 0 35
 #
 #
-#Email settings; password is a user prompt
-Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com
+# Email settings; password is a user prompt
+# system's account, imap, port, smtp, port, and account where to send reports and then the list of accepted additional accounts from where one can send commands from
+Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari_jaaksi@yahoo.com dummy@dymmy.com
 #
-#Common update_interval_in_sec daytime_tax nighttime_tax
+# a bunch of common variables
+# Common update_interval_in_sec daytime_tax nighttime_tax
 Common 5 0.033728 0.014508
 

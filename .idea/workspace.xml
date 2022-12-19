@@ -5,15 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b42443cf-b021-4cfe-af65-3927de1fde4a" name="Changes" comment="Initial version">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/debugTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/homeAutomation.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/homeAutomation.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HA_Config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HA_Config.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailManagement.py" beforeDir="false" afterPath="$PROJECT_DIR$/mailManagement.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shellyControls.py" beforeDir="false" afterPath="$PROJECT_DIR$/shellyControls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spotData.py" beforeDir="false" afterPath="$PROJECT_DIR$/spotData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../homeAutomationA" beforeDir="false" afterPath="$PROJECT_DIR$/../homeAutomationA" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -112,5 +124,16 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Initial version" />
     <option name="LAST_COMMIT_MESSAGE" value="Initial version" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>81</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

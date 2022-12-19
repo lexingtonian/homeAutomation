@@ -7,6 +7,7 @@ from email.header import Header
 from email.utils import formataddr
 import imaplib
 import email
+from debugTools import *
 
 #Command structure
 #devicename action
@@ -29,8 +30,11 @@ class haMail:
     emailSMTP ="Not defined"
     emailSMTPPort = 0
     emailRecipient ="Not defined"
+    #this is the list of authorized email accounts allowed to command the system
+    #specified in the config dile HA_Config.txt
+    emailAccountList = []
 
-    def __init__(self, emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort, emailRecipient):
+    def __init__(self, emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort, emailRecipient, emailAccountList):
         self.emailAccount=emailAccount
         self.emailPassword=emailPassword
         self.emailIMAP = emailIMAP
@@ -38,6 +42,7 @@ class haMail:
         self.emailSMTP=emailSMTP
         self.emailSMTPPort=emailSMTPPort
         self.emailRecipient=emailRecipient
+        self.emailAccountList = emailAccountList
 
 
     def sendReport(self, report):
@@ -59,7 +64,7 @@ class haMail:
             server.sendmail(sender, [recipient], msg.as_string())
             server.quit()
         except:
-            print("Cannot send report!")
+            printOnTerminal("Cannot send report!")
 
     def resetCommandQueue(self):
         self.command = "null"
@@ -84,7 +89,7 @@ class haMail:
             server.quit()
             self.emptyInbox()
         except:
-            print("Cannot reset command queue!")
+            printOnTerminal("Cannot reset command queue!")
 
     def sendMail(self, title, body):
         sender = self.emailAccount
@@ -116,6 +121,7 @@ class haMail:
             #run through messages and exit after the first
             for message_id in message_ids[0].split():  # returns all message ids
 
+
                 # for every id get the actual email
                 status, message_data = mail.fetch(message_id, '(RFC822)')
                 actual_message = email.message_from_bytes(message_data[0][1])
@@ -123,8 +129,24 @@ class haMail:
                 # extract the needed fields
                 email_date = actual_message["Date"]
                 subject = actual_message["Subject"]
+                #make sure the email comes from an accepted account
+                sender = actual_message["From"]
+                #1. loop through the list of accepted acccounts
+                #2. if the sender is not one of the accepted accounts abort!
+                #3. but before hat send an email to the main account about the attempt
+                abort = True
+                for ac in self.emailAccountList:
+                    if sender.find(ac)!=-1:
+                        printOnTerminal("----Sender: " + sender)
+                        abort = False
+                if (abort):
+                    printOnTerminal("Commanding email sent from an unathorized account " +sender + ". Ignoring .....")
+                    r = "Commanding email sent from an unathorized account "+ sender + ". Ignoring ....."
+                    self.sendReport(r)
+                    self.resetCommandQueue()
+                    return False
                 s = str(subject)
-                print("Command received from email: ",s)
+                printOnTerminal("Command received from email: " + s)
 
             #Note indent= only one loop cycle"
             #Expecting devicename command
@@ -141,7 +163,7 @@ class haMail:
             return True
 
         except:
-            print("Cannot read email and analyze commands x")
+            printOnTerminal("Cannot read email and analyze commands x")
             return False
 
     def emptyInbox(self):
@@ -157,7 +179,7 @@ class haMail:
             box.logout()
             return True
         except:
-            print("Cannot empty inbox")
+            printOnTerminal("Cannot empty inbox")
             return False
 
 

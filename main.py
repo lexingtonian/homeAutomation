@@ -6,13 +6,14 @@ from shellyControls import ShellyDevice, ShellyDevicePair
 from mailManagement import haMail
 import getpass
 import threading
+from debugTools import *
 
 #CONFIGFILE = "/Users/jaaksi/Downloads/HomeAutomation/HA_Config.txt"
 CONFIGFILE = "HA_Config.txt"
 stopThreads = False
 
 def printDeviceDayPlan(msd, d):
-    print(d.name, ":")
+    printOnTerminal(d.name+ ":")
     str =  "Hour:   1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
     str2 = "Status: "
     for x in range(24):
@@ -25,8 +26,8 @@ def printDeviceDayPlan(msd, d):
         else:
             str2 = str2 + "-  "
 
-    print(str)
-    print(str2)
+    printOnTerminal(str)
+    printOnTerminal(str2)
 
 
 #Readining meters in a separate thread
@@ -42,7 +43,7 @@ def thread_function(name):
 
 
 def refreshSpotData(mySpotData):
-    print("Refreshing Spot -data")
+    printOnTerminal("Refreshing Spot -data")
     #mySpotData = SpotData(daytimeTax, nightimeTax)
     mySpotData.populateSpotData()
     mySpotData.addTax()
@@ -57,16 +58,17 @@ shellyDevicePairs= []
 try:
     passwrd = getpass.getpass()
 except Exception as error:
-    print('ERROR in password assignment: ', error)
+    printOnTerminal('ERROR in password assignment: '+  error)
 
 #read config file
 if (True):
     try:
         f = open(CONFIGFILE, "r")
     except:
-        print("Cannot open configuration file at ", CONFIGFILE)
-        print("EXIT")
+        printOnTerminal("Cannot open configuration file at "+ CONFIGFILE)
+        printOnTerminal("EXIT")
         exit(0)
+    acList = []
     for x in f:
         if x[0]!="#" and x[0]!='\n':
             res = x.split()
@@ -77,7 +79,7 @@ if (True):
                 nbrOfHours = int(res[4])
                 highPrice = float(res[5])
                 lowPrice = float(res[6])
-                print("Creating device: ", deviceName)
+                printOnTerminal("Creating device: " + deviceName)
                 shellyDevices.append(ShellyDevice(deviceName, deviceType, ipAddress, nbrOfHours,highPrice,lowPrice))
             elif res[0]=="Email":
                 emailAccount = res[1]
@@ -87,14 +89,25 @@ if (True):
                 emailSMTP = res[4]
                 emailSMTPPort = int(res[5])
                 emailRecipient = res[6]
-                print("Creating email connections: ", emailAccount)
-                email = haMail(emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort,emailRecipient)
+                printOnTerminal("Creating account list")
+                i=0
+                #the main account is always firt marked as emailRecipient, and then the main mail account
+                acList.append(emailRecipient)
+                acList.append(emailAccount)
+                #then add the rest, if any
+                for ac in res:
+                    if i>6:
+                        printOnTerminal("Creating email connections: " + emailAccount)
+                        printOnTerminal(ac)
+                        acList.append(ac)
+                    i=i+1
+                email = haMail(emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort,emailRecipient, acList)
                 email.emptyInbox()
             elif res[0]=="Common":
                 updateInterval = int(res[1])
                 daytimeTax = float(res[2])
                 nightimeTax = float(res[3])
-                print("Creating Spot Data with day tax at ", daytimeTax, " and night tax at ",nightimeTax )
+                printOnTerminal("Creating Spot Data with day tax at " + str(daytimeTax) + " and night tax at " + str(nightimeTax))
                 mySpotData = SpotData(daytimeTax,nightimeTax)
                 mySpotData.populateSpotData()
                 mySpotData.addTax()
@@ -124,14 +137,14 @@ nowTime.setNow()
 readingMeters = threading.Thread(target=thread_function, args=(1,))
 readingMeters.start()
 
-print("Starting the loop:")
+printOnTerminal("Starting the loop:")
 loop = 0
 oldHour = -1
 
 while True:
     #go through every device and do approppriate actions
     loop = loop +1
-    print("In the loop #: ",loop, "at ", nowTime.getCurrentSystemTimeString())
+    printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
     time.sleep(updateInterval)
     #read temperatures from each meter and update them for those objects
     #currently implemented in a separate thread and thus commented away here
@@ -196,10 +209,10 @@ while True:
                 tempNow = meterToRead.getTemperature()
                 if tempNow>lowTemp and tempNow<highTemp:
                     switchToAdjust.turnOn()
-                    print("Adjust ", switchToAdjust.name , "ON based on the reading from ", meterToRead.name)
+                    printOnTerminal("Adjust " + switchToAdjust.name + "ON based on the reading from " + meterToRead.name)
                 else:
                     switchToAdjust.turnOff()
-                    print("Adjust ", switchToAdjust.name, "OFF based on the reading from ", meterToRead.name)
+                    printOnTerminal("Adjust " + switchToAdjust.name + "OFF based on the reading from "+  meterToRead.name)
 
     #read the command queue from email
     if email.readMailQueuAndReturnCommands():
@@ -217,20 +230,25 @@ while True:
                 email.resetCommandQueue()
 
             elif command == "shutdown":
-                print("System shutdown started:")
-                print("...creating shutdown report")
+                printOnTerminal("System shutdown started:")
+                #Turn all devices on before shutting down!!
+                printOnTerminal("Turning all devices ON before shutting the system down")
+                for x in shellyDevices:
+                    x.turnOn()
+
+                printOnTerminal("...creating shutdown report")
                 status = "I'm about to get shut down -- self destruction started -- nothing you can do about it! \n"
                 for x in shellyDevices:
                     status = status + x.createSelfReport()
 
-                print("...sending shutdown report")
+                printOnTerminal("...sending shutdown report")
                 email.sendMail("Home Automation System Shutdown", status)
-                print("...reseting command queue")
+                printOnTerminal("...reseting command queue")
                 email.resetCommandQueue()
-                print("...killing threads")
+                printOnTerminal("...killing threads")
                 stopThreads = True
                 readingMeters.join()
-                print("...killing main ... BYE!")
+                printOnTerminal("...killing main ... BYE!")
                 exit(0)
 
             elif command == "prices":
@@ -278,3 +296,7 @@ while True:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
                     email.resetCommandQueue()
+                    
+    #Force a smiley on terminal after a succesfull first loop
+    if (loop==1):
+        forceOnTerminal(":-)")
