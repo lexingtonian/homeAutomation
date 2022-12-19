@@ -17,6 +17,7 @@
 Device Tepseli switch 192.168.1.4 4 99.9 0.7
 Device Mittari meter 192.168.1.5 0 0 0
 Device Dummy meter 192.168.1.6 3 0 0
+Device Insain switch 192.168.1.7 3 0 0
 #
 # You can create meter => switch pairs as follows:
 # Pair meter switch on_bracket
@@ -28,7 +29,7 @@ Pair Mittari Tepseli 0 35
 #
 # Email settings; password is a user prompt
 # system's account, imap, port, smtp, port, and account where to send reports and then the list of accepted additional accounts from where one can send commands from
-Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari_jaaksi@yahoo.com dummy@dymmy.com
+Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari@linux.com dummy@dymmy.com
 #
 # a bunch of common variables
 # Common update_interval_in_sec daytime_tax nighttime_tax

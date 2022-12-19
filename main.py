@@ -49,23 +49,21 @@ def refreshSpotData(mySpotData):
     mySpotData.addTax()
     mySpotData.printSpotDataArray()
 
-#main program starts here ----------------------------------------------------------------------------------
-#print("Starting ----------")
-shellyDevices = []
-shellyDevicePairs= []
 
-#Get password for email
-try:
-    passwrd = getpass.getpass()
-except Exception as error:
-    printOnTerminal('ERROR in password assignment: '+  error)
+def readAndManageConfigurationFile(filename):
+    global shellyDevicePairs
+    global shellyDevices
+    global email
+    global mySpotData
 
-#read config file
-if (True):
+    shellyDevices.clear()
+    shellyDevicePairs.clear()
+
+
     try:
-        f = open(CONFIGFILE, "r")
+        f = open(filename, "r")
     except:
-        printOnTerminal("Cannot open configuration file at "+ CONFIGFILE)
+        printOnTerminal("Cannot open configuration file at "+ filename)
         printOnTerminal("EXIT")
         exit(0)
     acList = []
@@ -119,6 +117,23 @@ if (True):
                 hi = int(res[4])
                 shellyDevicePairs.append(ShellyDevicePair(meterName, switchName,lo, hi))
 
+
+
+
+#main program starts here ----------------------------------------------------------------------------------
+#print("Starting ----------")
+shellyDevices = []
+shellyDevicePairs = []
+updateInterval = 5
+
+#Get password for email
+try:
+    passwrd = getpass.getpass()
+except Exception as error:
+    printOnTerminal('ERROR in password assignment: '+  error)
+
+readAndManageConfigurationFile(CONFIGFILE)
+
 nowTime = MyDateTime()
 nowTime.setNow()
 
@@ -141,16 +156,12 @@ printOnTerminal("Starting the loop:")
 loop = 0
 oldHour = -1
 
+#The main program loop starts here
 while True:
     #go through every device and do approppriate actions
     loop = loop +1
     printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
     time.sleep(updateInterval)
-    #read temperatures from each meter and update them for those objects
-    #currently implemented in a separate thread and thus commented away here
-    #for x in shellyDevices:
-    #    if x.isMeter():
-    #        x.getTemperature()
 
     #refresh spot data every hour AND
     #overide manually (email) spot driven settings
@@ -226,6 +237,7 @@ while True:
                     status = status + x.createSelfReport()
                 email.sendMail("Home Automation System Status", status)
                 email.resetCommandQueue()
+
             elif command == "reset":
                 email.resetCommandQueue()
 
@@ -259,6 +271,7 @@ while True:
             elif command == "refresh":
                 status = "I re-run startup routines \n"
                 refreshSpotData(mySpotData)
+                readAndManageConfigurationFile(CONFIGFILE)
                 email.sendMail("Home Automation System Report", status)
                 email.resetCommandQueue()
 
