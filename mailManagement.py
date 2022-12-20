@@ -104,12 +104,14 @@ class haMail:
         msg['To'] = recipient
 
         # Create server object with SSL option
-        server = smtplib.SMTP_SSL(self.emailIMAP, self.emailSMTPPort)
-
-        # Perform operations via server
-        server.login(self.emailAccount, self.emailPassword)
-        server.sendmail(sender, [recipient], msg.as_string())
-        server.quit()
+        try:
+            server = smtplib.SMTP_SSL(self.emailIMAP, self.emailSMTPPort)
+            # Perform operations via server
+            server.login(self.emailAccount, self.emailPassword)
+            server.sendmail(sender, [recipient], msg.as_string())
+            server.quit()
+        except:
+            printOnTerminal("Cannot send mail")
 
     def readMailQueuAndReturnCommands(self):
         try:

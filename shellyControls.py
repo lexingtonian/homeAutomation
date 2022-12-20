@@ -99,7 +99,7 @@ class ShellyDevice:
             self.temperature = float(data['tmp']['value'])
             self.humidity = float(data['hum']['value'])
             self.battery = float(data['bat']['value'])
-            printOnTerminal("A Shelly device " + self.name + "temperature at the address " + self.address + " is " + str(self.temperature) + "and  humidity is "+ str(self.humidity) )
+            printOnTerminal("A Shelly device " + self.name + " temperature at the address " + self.address + " is " + str(self.temperature) + " and  humidity is "+ str(self.humidity) + "%")
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccesful=True
             return self.temperature
@@ -124,7 +124,6 @@ class ShellyDevice:
         return(self.lastUpdated)
 
     def createSelfReport(self):
-
         report =  self.name + ": in address " + str(self.address) + "\n   -last connection was " + str(self.lastConnectionSuccesful) + "\n   -currently available " + str(self.pingDevice())
         if self.isMeter():
             report = report + "\n   -temperature reading " +    str(self.getTemperature())+ "\n   -humidity reading " +    str(self.humidity) + "\n   -battery precentage reading " +    str(self.battery)+"%"
@@ -160,12 +159,14 @@ class ShellyDevicePair:
     highTemp=0
 
     def __init__(self, meterName, switchName, lowTemp, highTemp):
-
         self.meterName=meterName.lower()
         self.switchName=switchName.lower()
         self.lowTemp=lowTemp
         self.highTemp=highTemp
 
+    def createSelfReport(self):
+        report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowTemp) + " and " + str(self.highTemp) + " centigrades.\n"
+        return report
 
 
 

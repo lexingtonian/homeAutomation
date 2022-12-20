@@ -7,7 +7,10 @@
     <list default="true" id="b42443cf-b021-4cfe-af65-3927de1fde4a" name="Changes" comment="Initial version">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HA_Config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HA_Config.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailManagement.py" beforeDir="false" afterPath="$PROJECT_DIR$/mailManagement.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shellyControls.py" beforeDir="false" afterPath="$PROJECT_DIR$/shellyControls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spotData.py" beforeDir="false" afterPath="$PROJECT_DIR$/spotData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../homeAutomationA" beforeDir="false" afterPath="$PROJECT_DIR$/../homeAutomationA" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

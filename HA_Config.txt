@@ -14,7 +14,7 @@
 # -min_price is the electricity price below which the device will be always on
 # -max an min will not add/reduce hours on time!
 #
-Device Tepseli switch 192.168.1.4 4 99.9 0.7
+Device Tepseli switch 192.168.1.4 4 99.9 0.05
 Device Mittari meter 192.168.1.5 0 0 0
 Device Dummy meter 192.168.1.6 3 0 0
 Device Insain switch 192.168.1.7 3 0 0
@@ -24,7 +24,7 @@ Device Insain switch 192.168.1.7 3 0 0
 # For example:
 # Pair Meter Switch 0 18   -- turns the switch on if temp is between 0 - 18
 # Pairing will override spot data
-Pair Mittari Tepseli 0 35
+Pair Mittari Tepseli 0 25
 #
 #
 # Email settings; password is a user prompt

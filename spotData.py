@@ -41,22 +41,24 @@ class SpotData:
     # if opening OK, self.status == True
     # populate data structures
     def populateSpotData(self):
-        #delete spot array firts so you can re-populate it every dat
-        del self.spotItemArray[:]
-
         #api_response = requests.get('https://api.spot-hinta.fi/TodayAndDayForward')
         try:
             api_response = requests.get(SPOTDATAURL)
         except:
-            printOnTerminal("ERROR: Cannot open " + SPOTDATAURL)
-            return
+            printOnTerminal("Error in Spot Data population: Cannot open " + SPOTDATAURL)
+            self.status = False
+            return False
 
         if (api_response.status_code == 200):
             self.status = True
         else:
-            printOnTerminal("ERROR; api_response:" + api_response + ".")
-            return
+            printOnTerminal("ERROR B; api_response:" + api_response + ".")
+            self.status=False
+            return False
 
+        # delete spot array firts so you can re-populate it every dat
+        # del self.spotItemArray[:]
+        self.spotItemArray.clear()
         self.data = api_response.text
 
         parse_json = json.loads(self.data)
@@ -74,6 +76,7 @@ class SpotData:
                     tmpSpotItem.rank = int(value)
             #add new spot item to the spot item array
             self.spotItemArray.append(tmpSpotItem)
+        return True
 
     def addTax(self):
         #add day and night tax

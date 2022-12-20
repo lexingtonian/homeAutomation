@@ -45,9 +45,13 @@ def thread_function(name):
 def refreshSpotData(mySpotData):
     printOnTerminal("Refreshing Spot -data")
     #mySpotData = SpotData(daytimeTax, nightimeTax)
-    mySpotData.populateSpotData()
-    mySpotData.addTax()
-    mySpotData.printSpotDataArray()
+    if mySpotData.populateSpotData():
+        mySpotData.addTax()
+        mySpotData.printSpotDataArray()
+        return True
+    else:
+        printOnTerminal("Failed in refreshing Spot -data")
+        return False
 
 
 def readAndManageConfigurationFile(filename):
@@ -58,7 +62,6 @@ def readAndManageConfigurationFile(filename):
 
     shellyDevices.clear()
     shellyDevicePairs.clear()
-
 
     try:
         f = open(filename, "r")
@@ -118,8 +121,6 @@ def readAndManageConfigurationFile(filename):
                 shellyDevicePairs.append(ShellyDevicePair(meterName, switchName,lo, hi))
 
 
-
-
 #main program starts here ----------------------------------------------------------------------------------
 #print("Starting ----------")
 shellyDevices = []
@@ -167,8 +168,10 @@ while True:
     #overide manually (email) spot driven settings
     now = nowTime.getCurrentSystemHour()
     if (now != oldHour and mySpotData.spotDataOK()):
-        refreshSpotData(mySpotData)
-        oldHour=now
+        if refreshSpotData(mySpotData):
+            oldHour=now
+        else:
+            printOnTerminal("Cannot refresh Spod Data in the main loop. Trying again!")
 
         #go through the Spot Data  and turn on devices based on their settings
         for device in shellyDevices: #loop through devices tyo turn them on/of based on the spot data and settings
@@ -232,8 +235,12 @@ while True:
         #see, if command is for the system
         if (device == "system"):
             if command == "status":
-                status = "Doing great! \n"
+                status = "Devices in the system \n"
                 for x in shellyDevices:
+                    status = status + x.createSelfReport()
+                status = status + "\n"
+                status = status + "Device pairs in the system \n"
+                for x in shellyDevicePairs:
                     status = status + x.createSelfReport()
                 email.sendMail("Home Automation System Status", status)
                 email.resetCommandQueue()
