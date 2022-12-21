@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+import sys
 from dateTimeConversions import MyDateTime
 from spotData import SpotData
 from shellyControls import ShellyDevice, ShellyDevicePair
@@ -68,7 +68,9 @@ def readAndManageConfigurationFile(filename):
     except:
         printOnTerminal("Cannot open configuration file at "+ filename)
         printOnTerminal("EXIT")
-        exit(0)
+        sys.exit("DONE")
+
+
     acList = []
     for x in f:
         if x[0]!="#" and x[0]!='\n':
@@ -126,12 +128,13 @@ def readAndManageConfigurationFile(filename):
 shellyDevices = []
 shellyDevicePairs = []
 updateInterval = 5
+mySpotData = 0
 
 #Get password for email
 try:
     passwrd = getpass.getpass()
-except Exception as error:
-    printOnTerminal('ERROR in password assignment: '+  error)
+except:
+    printOnTerminal("ERROR in password assignment")
 
 readAndManageConfigurationFile(CONFIGFILE)
 
@@ -197,6 +200,7 @@ while True:
                     device.turnOn()
                     debugStr = debugStr + "ON because none of the config file terms was met"
 
+                printOnTerminal(debugStr)
                 #print(debugStr)
 
         # go through meter-switch pairs and set switches
@@ -223,10 +227,10 @@ while True:
                 tempNow = meterToRead.getTemperature()
                 if tempNow>lowTemp and tempNow<highTemp:
                     switchToAdjust.turnOn()
-                    printOnTerminal("Adjust " + switchToAdjust.name + "ON based on the reading from " + meterToRead.name)
+                    printOnTerminal("Adjust " + switchToAdjust.name + " ON based on the reading from " + meterToRead.name)
                 else:
                     switchToAdjust.turnOff()
-                    printOnTerminal("Adjust " + switchToAdjust.name + "OFF based on the reading from "+  meterToRead.name)
+                    printOnTerminal("Adjust " + switchToAdjust.name + " OFF based on the reading from "+  meterToRead.name)
 
     #read the command queue from email
     if email.readMailQueuAndReturnCommands():
@@ -308,6 +312,7 @@ while True:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
                     email.resetCommandQueue()
+
                 elif command == "turnoff":
                     x.turnOff()
                     #send a report after a succesful state change

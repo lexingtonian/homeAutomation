@@ -107,6 +107,7 @@ class SpotData:
             #print("Here out", here)
             rank=rank+1
 
+
     #for debugging
     def printSpotDataArray(self):
 
@@ -115,6 +116,7 @@ class SpotData:
             return
         for x in range(24):
             printOnTerminal("Rank: " + str(self.spotItemArray[x].rank) + " Hour: "+ str(self.spotItemArray[x].hour) + " Price: " +  str(self.spotItemArray[x].price))
+
 
     def createSpotDataReport(self):
         report = "Spot Data: \n"
