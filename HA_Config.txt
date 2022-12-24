@@ -22,9 +22,9 @@ Device Insain switch 192.168.1.7 3 0 0
 # You can create meter => switch pairs as follows:
 # Pair meter switch on_bracket
 # For example:
-# Pair Meter Switch 0 18   -- turns the switch on if temp is between 0 - 18
+# Pair Meter Switch 0 22   -- turns the switch on if temp is between 0 - 22
 # Pairing will override spot data
-Pair Mittari Tepseli 0 25
+Pair Mittari Tepseli 0 20
 #
 #
 # Email settings; password is a user prompt
@@ -32,6 +32,6 @@ Pair Mittari Tepseli 0 25
 Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari@linux.com dummy@dymmy.com
 #
 # a bunch of common variables
-# Common update_interval_in_sec daytime_tax nighttime_tax
+# Common system_update_interval_in_sec daytime_tax nighttime_tax
 Common 5 0.033728 0.014508
 

@@ -1,3 +1,16 @@
+# Copyright Ari Jaaksi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import requests
 import json
 from dateTimeConversions import MyDateTime
@@ -13,24 +26,24 @@ SPOTDATAURL = "https://api.spot-hinta.fi/Today"
 #https://api.spot-hinta.fi/TodayAndDayForward (yhdellä haulla tämän päivän hinnat ja huomiset jos ne on olemassa)
 
 
-#one hour of electical info
+# one hour of electrical price info
 class SpotItem:
     rank = -1  #cheapest == 0; most expensive == 24
     price = -1
     hour = -1
 
-
+# one week of electrical price info
 class SpotData:
     status = False
     data = 0
     spotItemArray = []
-    taxDay = 0.0
-    taxNight = 0.0
+    taxDay = 0.0 #daytime tax
+    taxNight = 0.0 #nightime tax
 
     #day tax, night tax
     def __init__(self,d,n):
-        self.taxDay=d
-        self.taxNight=n
+        self.taxDay = d
+        self.taxNight = n
 
 
     def spotDataOK(self):
@@ -41,7 +54,6 @@ class SpotData:
     # if opening OK, self.status == True
     # populate data structures
     def populateSpotData(self):
-        #api_response = requests.get('https://api.spot-hinta.fi/TodayAndDayForward')
         try:
             api_response = requests.get(SPOTDATAURL)
         except:
@@ -52,11 +64,11 @@ class SpotData:
         if (api_response.status_code == 200):
             self.status = True
         else:
-            printOnTerminal("ERROR B; api_response:" + api_response + ".")
+            printOnTerminal("ERROR B; api_response:" + str(api_response) + ".")
             self.status=False
             return False
 
-        # delete spot array firts so you can re-populate it every dat
+        # delete spot array first so you can re-populate it every day new
         # del self.spotItemArray[:]
         self.spotItemArray.clear()
         self.data = api_response.text
@@ -110,7 +122,6 @@ class SpotData:
 
     #for debugging
     def printSpotDataArray(self):
-
         printOnTerminal("SpotData: ")
         if self.status == False:
             return

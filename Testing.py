@@ -1,20 +1,30 @@
-import ShellyPy
-import time
+# a placeholder for random testing
+# ignore
 
-def UdateMe():
-    print("Updated")
+from devices import *
 
-print("1")
-device = ShellyPy.Shelly("192.168.1.4")
-device.relay(0, turn=True)
-print("2")
+#class ShellySwitch(ShellyDevice):
+#    pass
 
-#meter = ShellyPy.Shelly("192.168.1.5", init="UpdateMe")
-meter = ShellyPy.Shelly("192.168.1.5")
-print("3")
-meter.
+#class ShellyMeter(ShellyDevice):
+#    def __init__(self, name, dtype, address, heatingHoursRequired, max, min, extra):
+#        super().__init__(name, dtype, address, heatingHoursRequired, max, min)
+#        self.extra = extra
+
+#    def printExtra(self):
+#        print(self.extra)
 
 
-while True:
-    time.sleep(5)
-    print(".")
+x = ShellyMeter("name", "address")
+#y = ShellySwitch("name", "dtype", "address", 3, 3, 3)
+
+print(isinstance(x, ShellyMeter))
+print(x.getName())
+
+y = ShellySwitch("svitsi","192.168.1.4",1,2,3)
+y.turnOn()
+y.turnOff()
+
+
+#d = Device("Laite")
+#print(d.getName())

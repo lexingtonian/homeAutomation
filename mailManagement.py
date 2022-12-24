@@ -1,3 +1,16 @@
+# Copyright Ari Jaaksi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # Code from best solution in page below:
 # https://help.zoho.com/portal/community/topic/zoho-mail-servers-reject-python-smtp-module-communications
 
@@ -24,14 +37,14 @@ class haMail:
     device = "Not defined"
     command = "Not defined"
     emailAccount = "Not defined"
-    emailPassword ="Not defined"
-    emailIMAP ="Not defined"
+    emailPassword = "Not defined"
+    emailIMAP = "Not defined"
     emailIMAPPort = 0
-    emailSMTP ="Not defined"
+    emailSMTP = "Not defined"
     emailSMTPPort = 0
-    emailRecipient ="Not defined"
+    emailRecipient = "Not defined"
     #this is the list of authorized email accounts allowed to command the system
-    #specified in the config dile HA_Config.txt
+    #specified in the config file HA_Config.txt
     emailAccountList = []
 
     def __init__(self, emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort, emailRecipient, emailAccountList):
@@ -44,6 +57,15 @@ class haMail:
         self.emailRecipient=emailRecipient
         self.emailAccountList = emailAccountList
 
+
+    def verifyEmail(self):
+        try:
+            server = smtplib.SMTP_SSL(self.emailIMAP, self.emailSMTPPort)
+            server.login(self.emailAccount, self.emailPassword)
+            server.quit()
+            return True
+        except:
+            return False
 
     def sendReport(self, report):
         sender = self.emailAccount
@@ -65,31 +87,6 @@ class haMail:
             server.quit()
         except:
             printOnTerminal("Cannot send report!")
-
-    def resetCommandQueue(self):
-        self.command = "null"
-        self.device = "null"
-        sender = self.emailAccount
-        sender_title = "Home Automation System"
-        recipient = self.emailAccount
-
-        # Create message
-        msg = MIMEText("reset", 'plain', 'utf-8')
-        #msg['Subject'] =  Header("reset", 'utf-8')
-        msg['Subject'] =  Header("reset")
-        msg['From'] = formataddr((str(Header(sender_title, 'utf-8')), sender))
-        msg['To'] = recipient
-        try:
-            # Create server object with SSL option
-            server = smtplib.SMTP_SSL(self.emailIMAP, self.emailSMTPPort)
-
-            # Perform operations via server
-            server.login(self.emailAccount, self.emailPassword)
-            server.sendmail(sender, [recipient], msg.as_string())
-            server.quit()
-            self.emptyInbox()
-        except:
-            printOnTerminal("Cannot reset command queue!")
 
     def sendMail(self, title, body):
         sender = self.emailAccount
@@ -162,6 +159,9 @@ class haMail:
                 self.command = splits[1]
                 self.device = self.device.lower()
                 self.command = self.command.lower()
+            else:
+                self.device = "null"
+                self.command = "null"
             return True
 
         except:
@@ -179,6 +179,7 @@ class haMail:
             box.expunge()
             box.close()
             box.logout()
+            printOnTerminal("Email inbox emptied")
             return True
         except:
             printOnTerminal("Cannot empty inbox")

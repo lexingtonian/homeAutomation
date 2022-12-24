@@ -1,20 +1,38 @@
+# Copyright Ari Jaaksi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This module contains the main program
+#
+
 import time
 import sys
 from dateTimeConversions import MyDateTime
 from spotData import SpotData
-from shellyControls import ShellyDevice, ShellyDevicePair
+from devices import ShellySwitch, ShellyMeter, ShellyDevicePair
 from mailManagement import haMail
 import getpass
 import threading
 from debugTools import *
 
-#CONFIGFILE = "/Users/jaaksi/Downloads/HomeAutomation/HA_Config.txt"
 CONFIGFILE = "HA_Config.txt"
 stopThreads = False
 
+
+# Only to show daily proces on screen
+# A better way is to command system prices through email
 def printDeviceDayPlan(msd, d):
     printOnTerminal(d.name+ ":")
-    str =  "Hour:   1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
+    str = "Hour:   1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
     str2 = "Status: "
     for x in range(24):
         rank = msd.spotItemArray[x].rank
@@ -30,21 +48,24 @@ def printDeviceDayPlan(msd, d):
     printOnTerminal(str2)
 
 
-#Readining meters in a separate thread
+# Readining meters in a separate thread
+# NOTE: we read meters, such as temp meters by polling in this separate thread
+# e.g Shelly meters are on ONLY when temperature has recently changed
+# if no change recently, they are in sleep and cannot be contacted
 def thread_function(name):
     while True:
         time.sleep(1)
         for x in shellyDevices:
-            if x.isMeter():
+            if isinstance(x, ShellyMeter):
                 x.getTemperature()
         global stopThreads
         if stopThreads:
             break
 
 
+# Re-read price data, add approppriate tax
 def refreshSpotData(mySpotData):
     printOnTerminal("Refreshing Spot -data")
-    #mySpotData = SpotData(daytimeTax, nightimeTax)
     if mySpotData.populateSpotData():
         mySpotData.addTax()
         mySpotData.printSpotDataArray()
@@ -70,7 +91,6 @@ def readAndManageConfigurationFile(filename):
         printOnTerminal("EXIT")
         sys.exit("DONE")
 
-
     acList = []
     for x in f:
         if x[0]!="#" and x[0]!='\n':
@@ -83,7 +103,10 @@ def readAndManageConfigurationFile(filename):
                 highPrice = float(res[5])
                 lowPrice = float(res[6])
                 printOnTerminal("Creating device: " + deviceName)
-                shellyDevices.append(ShellyDevice(deviceName, deviceType, ipAddress, nbrOfHours,highPrice,lowPrice))
+                if deviceType == "switch":
+                    shellyDevices.append(ShellySwitch(deviceName, ipAddress, nbrOfHours,highPrice,lowPrice))
+                elif deviceType == "meter":
+                    shellyDevices.append(ShellyMeter(deviceName, ipAddress))
             elif res[0]=="Email":
                 emailAccount = res[1]
                 emailPassword = passwrd  #note: not from file but a user prompt
@@ -105,6 +128,7 @@ def readAndManageConfigurationFile(filename):
                         acList.append(ac)
                     i=i+1
                 email = haMail(emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort,emailRecipient, acList)
+                emailPasswordOK = email.verifyEmail()
                 email.emptyInbox()
             elif res[0]=="Common":
                 updateInterval = int(res[1])
@@ -122,37 +146,37 @@ def readAndManageConfigurationFile(filename):
                 hi = int(res[4])
                 shellyDevicePairs.append(ShellyDevicePair(meterName, switchName,lo, hi))
 
+    return(emailPasswordOK)
 
-#main program starts here ----------------------------------------------------------------------------------
-#print("Starting ----------")
+
+# main program starts here ----------------------------------------------------------------------------------
+# main program starts here ----------------------------------------------------------------------------------
+# main program starts here ----------------------------------------------------------------------------------
+
 shellyDevices = []
 shellyDevicePairs = []
 updateInterval = 5
 mySpotData = 0
 
-#Get password for email
+# Get password for email from the command line
 try:
     passwrd = getpass.getpass()
 except:
     printOnTerminal("ERROR in password assignment")
 
-readAndManageConfigurationFile(CONFIGFILE)
+passwordOk = readAndManageConfigurationFile(CONFIGFILE)
+if passwordOk == False:
+    printOnTerminal("Wrong Password")
+    exit(0)
 
 nowTime = MyDateTime()
 nowTime.setNow()
 
-#shellyDevices.index(ShellyDevice.name)
-
-#Remove the following comment if you want to simulate savings
+# Remove the following comment if you want to simulate savings
 #mySpotData.testRunSavings(22000/3)
 
-#Tests
-#remove comments if you want testing
-#shellyDevices[0].turnOn()
-#time.sleep(2)
-#shellyDevices[0].turnOff()
-
-#reding meters in a separate thread to make sure we do it often enough
+# reading meters in a separate thread to make sure we do it often enough
+# start the reading thread
 readingMeters = threading.Thread(target=thread_function, args=(1,))
 readingMeters.start()
 
@@ -160,15 +184,16 @@ printOnTerminal("Starting the loop:")
 loop = 0
 oldHour = -1
 
-#The main program loop starts here
+# The main program loop starts here
+# ---------------------------------
 while True:
     #go through every device and do approppriate actions
     loop = loop +1
     printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
     time.sleep(updateInterval)
 
-    #refresh spot data every hour AND
-    #overide manually (email) spot driven settings
+    # refresh spot data every hour AND
+    # overide manually (email) spot driven settings
     now = nowTime.getCurrentSystemHour()
     if (now != oldHour and mySpotData.spotDataOK()):
         if refreshSpotData(mySpotData):
@@ -176,9 +201,9 @@ while True:
         else:
             printOnTerminal("Cannot refresh Spod Data in the main loop. Trying again!")
 
-        #go through the Spot Data  and turn on devices based on their settings
+        # go through the Spot Data  and turn on devices based on their settings
         for device in shellyDevices: #loop through devices tyo turn them on/of based on the spot data and settings
-            if device.isSwitch():
+            if isinstance(device, ShellySwitch):
                 debugStr = "Device " + device.name + "heatingHoursRequired: " + str(device.heatingHoursRequired) + " maxPrice: "+  str(device.maxPrice)+  " minPrice: " + str(device.minPrice)
                 #print(debugStr)
                 debugStr = "Device " + device.name + " was turned "
@@ -212,19 +237,20 @@ while True:
             switchFound = False
             #then find devices in that pair
             for device in shellyDevices:
-                if device.isMeter() and device.name == pair.meterName:
+                if isinstance(device, ShellyMeter) and device.name == pair.meterName:
                     meterToRead=device
                     meterFound = True
-                if device.isSwitch() and device.name == pair.switchName:
+                if isinstance(device, ShellySwitch) and device.name == pair.switchName:
                     switchToAdjust = device
                     switchFound = True
                 #print("X, ", device.name, meterFound, switchFound)
             #then adjust accoriding to the binding
             if meterFound and switchFound:
-                #print("Found a meter-switch pair to adjust")
+                printOnTerminal("Found a meter-switch pair to adjust")
                 lowTemp = pair.lowTemp
                 highTemp = pair.highTemp
                 tempNow = meterToRead.getTemperature()
+                #Say, tempNow is 20 and min max are 0 22, then turn on
                 if tempNow>lowTemp and tempNow<highTemp:
                     switchToAdjust.turnOn()
                     printOnTerminal("Adjust " + switchToAdjust.name + " ON based on the reading from " + meterToRead.name)
@@ -247,17 +273,18 @@ while True:
                 for x in shellyDevicePairs:
                     status = status + x.createSelfReport()
                 email.sendMail("Home Automation System Status", status)
-                email.resetCommandQueue()
+                email.emptyInbox()
 
             elif command == "reset":
-                email.resetCommandQueue()
+                email.emptyInbox()
 
             elif command == "shutdown":
                 printOnTerminal("System shutdown started:")
-                #Turn all devices on before shutting down!!
+                # Turn all devices on before shutting down!!
                 printOnTerminal("Turning all devices ON before shutting the system down")
                 for x in shellyDevices:
-                    x.turnOn()
+                    if isinstance(x, ShellySwitch):
+                        x.turnOn()
 
                 printOnTerminal("...creating shutdown report")
                 status = "I'm about to get shut down -- self destruction started -- nothing you can do about it! \n"
@@ -267,7 +294,7 @@ while True:
                 printOnTerminal("...sending shutdown report")
                 email.sendMail("Home Automation System Shutdown", status)
                 printOnTerminal("...reseting command queue")
-                email.resetCommandQueue()
+                email.emptyInbox()
                 printOnTerminal("...killing threads")
                 stopThreads = True
                 readingMeters.join()
@@ -277,14 +304,14 @@ while True:
             elif command == "prices":
                 prices = mySpotData.createSpotDataReport()
                 email.sendMail("Home Automation System Report", prices)
-                email.resetCommandQueue()
+                email.emptyInbox()
 
             elif command == "refresh":
                 status = "I re-run startup routines \n"
                 refreshSpotData(mySpotData)
                 readAndManageConfigurationFile(CONFIGFILE)
                 email.sendMail("Home Automation System Report", status)
-                email.resetCommandQueue()
+                email.emptyInbox()
 
             elif command == "help":
                 help = "These are the available commands:\n"
@@ -295,10 +322,10 @@ while True:
                 help = help + "system refresh \n"
                 help = help + "system help \n"
                 help = help + "------------------------------------------------ \n"
-                help = help + "devicename systemturnon \n"
+                help = help + "devicename turnon \n"
                 help = help + "devicename turnoff \n"
                 email.sendMail("Home Automation System Help", help)
-                email.resetCommandQueue()
+                email.emptyInbox()
 
         #go through all devices to find the one command is addressed to
         for x in shellyDevices:
@@ -311,7 +338,7 @@ while True:
                     for x in shellyDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
-                    email.resetCommandQueue()
+                    email.emptyInbox()
 
                 elif command == "turnoff":
                     x.turnOff()
@@ -320,7 +347,7 @@ while True:
                     for x in shellyDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
-                    email.resetCommandQueue()
+                    email.emptyInbox()
                     
     #Force a smiley on terminal after a succesfull first loop
     if (loop==1):
