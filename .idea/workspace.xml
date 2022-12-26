@@ -7,9 +7,10 @@
     <list default="true" id="b42443cf-b021-4cfe-af65-3927de1fde4a" name="Changes" comment="Initial version">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/HA_Config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/HA_Config.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debugTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/debugTools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/devices.py" beforeDir="false" afterPath="$PROJECT_DIR$/devices.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/homeAutomation.py" beforeDir="false" afterPath="$PROJECT_DIR$/homeAutomation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spotData.py" beforeDir="false" afterPath="$PROJECT_DIR$/spotData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../homeAutomationA" beforeDir="false" afterPath="$PROJECT_DIR$/../homeAutomationA" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -28,6 +28,9 @@ from debugTools import *
 # -------------------------------------------------------------------------
 class Device():
     name = "Not Specified"
+    meter = False
+    switch= False
+
     def __init__(self, name):
         self.name = name.lower()
 
@@ -36,6 +39,13 @@ class Device():
 
     def getName(self):
         return self.name
+
+    def isSwitch(self):
+        return self.switch
+
+    def isMeter(self):
+        return  self.meter
+
 
 
 # -------------------------------------------------------------------------
@@ -114,6 +124,7 @@ class ShellyMeter(ShellyDevice):
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
+            self.meter = True
             printOnTerminal("A Shelly meter " + name + " successfully contacted at the address " + address)
         except:
             printOnTerminal("A Shelly meter " + name + " cannot be reached at the address " + address)
@@ -172,6 +183,7 @@ class ShellySwitch(ShellyDevice):
             self.alive = True
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
+            self.switch = True
             printOnTerminal("A Shelly switch " + name + " successfully contacted at the address " + address)
         except:
             printOnTerminal("A Shelly switch " + name + " cannot be reached at the address " + address)

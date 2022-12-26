@@ -15,7 +15,7 @@
 # This module manages screen printings; i.e. do you want to see progress on screen
 # -------------------------------------------------------------------------
 
-ECHO = True #do you want to echo on screen
+ECHO = False #do you want to echo on screen
 FORCE = True #a few more important notifications; yes/no?
 
 #tools for debuggin etc

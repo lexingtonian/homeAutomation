@@ -56,7 +56,7 @@ def readMeters(name):
     while True:
         time.sleep(1)
         for x in myDevices:
-            if isinstance(x, ShellyMeter):
+            if x.isMeter():
                 x.getTemperature()
         global stopThreads
         if stopThreads:
@@ -166,11 +166,11 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
         # find devices in that pair
         #find the meter
         for meter in myDevices:
-            if isinstance(meter, ShellyMeter) and meter.getName() == pair.meterName:
+            if meter.isMeter() and meter.getName() == pair.meterName:
                 # now meter is the meter that adjusts
                 # find a switch
                 for switch in myDevices:
-                    if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                    if switch.isSwitch() and switch.getName() == pair.switchName:
                         #at this point meter and switch are pairs to be adjusted
                         #then adjust accoriding to the binding
                         printOnTerminal("Found a meter-switch pair to adjust")
@@ -189,7 +189,7 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
         # in these cases a switch is turned on/of based on time
         if pair.meterName == "systemclock":
             for switch in myDevices:
-                if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                if switch.isSwitch() and switch.getName() == pair.switchName:
                     printOnTerminal("Found a systemclock-switch pair to adjust")
                     start = pair.lowNbr  # has actually nothing to do with themp, but just jusing the same variable name
                     end = pair.highNbr
@@ -212,7 +212,7 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
         # in these cases a switch is turned on/of based on settings
         if pair.meterName == "spotdata":
             for switch in myDevices:
-                if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                if switch.isSwitch() and switch.getName() == pair.switchName:
                     printOnTerminal("Found a spotdata-switch pair to adjust")
                     lowPrice = pair.lowNbr
                     highPrice = pair.highNbr
@@ -269,7 +269,7 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
                 # Turn all devices on before shutting down!!
                 printOnTerminal("Turning all devices ON before shutting the system down")
                 for x in myDevices:
-                    if isinstance(x, ShellySwitch):
+                    if x.isSwitch():
                         x.turnOn()
 
                 printOnTerminal("...creating shutdown report")
@@ -364,7 +364,6 @@ nowTime.setNow()
 # mySpotData.testRunSavings(22000/3)
 
 # reading meters in a separate thread to make sure we do it often enough
-# start the reading thread
 readingMeters = threading.Thread(target=readMeters, args=(1,))
 readingMeters.start()
 
@@ -377,7 +376,7 @@ oldHour = -1
 while True:
     #go through every device and do approppriate actions
     loop = loop +1
-    printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
+    forceOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
     time.sleep(updateInterval)
 
     # refresh spot data every hour AND

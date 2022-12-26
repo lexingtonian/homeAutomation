@@ -17,8 +17,8 @@
 Device Tepseli switch 192.168.1.4
 Device Mittari meter 192.168.1.5
 Device Dummy meter 192.168.1.6
-Device Insane switch 192.168.1.7
-Device DiipaDaapa switch 192.168.1.8
+Device Dummy2 switch 192.168.1.7
+Device Dummy3 switch 192.168.1.8
 # ---------------------------------------------------------------
 #
 # You can create meter => switch pairs as follows:
@@ -27,7 +27,7 @@ Device DiipaDaapa switch 192.168.1.8
 # Pair Meter Switch 0 22   -- turns the Switch on if temp of the Meter is between 0 - 22
 #
 # -----------------------------------------------------------------
-Pair Mittari Insane 0 22
+Pair Mittari Dummy2 0 24
 # -----------------------------------------------------------------
 #
 # There are a few reserved pairing words
@@ -44,8 +44,8 @@ Pair Mittari Insane 0 22
 #
 #
 # -----------------------------------------------------------------
-Pair systemclock Insane 6 21
-Pair spotdata Tepseli 0.04 0.99 18
+Pair systemclock Dummy3 14 18
+Pair spotdata Tepseli 0.04 0.99 20
 # -----------------------------------------------------------------
 #
 # Email settings; password is a user prompt. Email is defined as follows:

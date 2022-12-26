@@ -126,7 +126,7 @@ class SpotData:
         if self.status == False:
             return
         for x in range(24):
-            printOnTerminal("Rank: " + str(self.spotItemArray[x].rank) + " Hour: "+ str(self.spotItemArray[x].hour) + " Price: " +  str(self.spotItemArray[x].price))
+            printOnTerminal("Hour: "+ str(self.spotItemArray[x].hour) + " Rank: " + str(self.spotItemArray[x].rank) +  " Price: " +  str(round(self.spotItemArray[x].price,3)) + "€")
 
 
     def createSpotDataReport(self):
@@ -135,7 +135,7 @@ class SpotData:
             report = report + "Cannot generate report as Spot Data not available"
             return report
         for x in range(24):
-            report = report + "Rank: " + str(self.spotItemArray[x].rank) + " Hour: " +  str(self.spotItemArray[x].hour) + " Price: " + str(self.spotItemArray[x].price) + "\n"
+            report = report + "Hour: " + str(self.spotItemArray[x].hour) + " Rank: " + str(self.spotItemArray[x].rank) + " Price: " + str(round(self.spotItemArray[x].price,3)) +"€ \n"
             #print("Rank: ", self.spotItemArray[x].rank, " Hour: ", self.spotItemArray[x].hour, " Price: ", self.spotItemArray[x].price)
         return report
 
