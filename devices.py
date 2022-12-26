@@ -117,14 +117,13 @@ class ShellyMeter(ShellyDevice):
         self.temperature = -999.99
         self.humidity = -999.99
         self.battery = 0.0
-
+        self.meter = True
         try:
             self.device = ShellyPy.Shelly(address)
             self.alive = True
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
-            self.meter = True
             printOnTerminal("A Shelly meter " + name + " successfully contacted at the address " + address)
         except:
             printOnTerminal("A Shelly meter " + name + " cannot be reached at the address " + address)
@@ -177,13 +176,12 @@ class ShellySwitch(ShellyDevice):
         self.isOn = False
         self.temperature = -999.99
         self.humidity = -999.99
-
+        self.switch = True
         try:
             self.device = ShellyPy.Shelly(self.address)
             self.alive = True
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
-            self.switch = True
             printOnTerminal("A Shelly switch " + name + " successfully contacted at the address " + address)
         except:
             printOnTerminal("A Shelly switch " + name + " cannot be reached at the address " + address)
