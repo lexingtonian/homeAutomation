@@ -45,7 +45,7 @@ Pair Mittari Insane 0 22
 #
 # -----------------------------------------------------------------
 Pair systemclock Insane 6 21
-Pair spotdata Tepseli 0.01 0.99 6
+Pair spotdata Tepseli 0.04 0.99 18
 # -----------------------------------------------------------------
 #
 # Email settings; password is a user prompt. Email is defined as follows:

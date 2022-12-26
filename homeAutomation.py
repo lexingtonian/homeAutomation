@@ -208,27 +208,35 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
                             switch.turnOn()
                             printOnTerminal("Adjust " + switch.name + " ON based on the reading from the systemclock: " + str(now))
 
-            # then, separately, look for the European spot data - switch pairs; spot data is handled as a meter
-            # in these cases a switch is turned on/of based on settings
-            if pair.meterName == "spotdata":
-                for switch in myDevices:
-                    if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
-                        printOnTerminal("Found a spotdata-switch pair to adjust")
-                        lowPrice = pair.lowNbr
-                        highPrice = pair.highNbr
-                        hours = pair.hourNbr
-                        end = pair.highNbr
-                        if mySpotData.spotItemArray[now].rank >= hours:
-                            switch.turnOff()
-                        else:
-                            switch.turnOn()
-                        # if price is LOWER than specified in the first value, turn it ALWAYS on
-                        if mySpotData.spotItemArray[now].price <= lowPrice:
-                            switch.turnOn()
-                        # if price is HIGHER than specified in the second value, always turn off
-                        if mySpotData.spotItemArray[now].price <= lowPrice:
-                            switch.turnOff()
-
+        # then, separately, look for the European spot data - switch pairs; spot data is handled as a meter
+        # in these cases a switch is turned on/of based on settings
+        if pair.meterName == "spotdata":
+            for switch in myDevices:
+                if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                    printOnTerminal("Found a spotdata-switch pair to adjust")
+                    lowPrice = pair.lowNbr
+                    highPrice = pair.highNbr
+                    hours = pair.hourNbr
+                    shouldBeOn = False
+                    if mySpotData.spotItemArray[now].rank >= hours:
+                        #switch.turnOff()
+                        shouldBeOn=False
+                    else:
+                        #switch.turnOn()
+                        shouldBeOn=True
+                    # if price is LOWER than specified in the first value, turn it ALWAYS on
+                    if mySpotData.spotItemArray[now].price <= lowPrice:
+                        #switch.turnOn()
+                        shouldBeOn = True
+                    # if price is HIGHER than specified in the second value, always turn off
+                    if mySpotData.spotItemArray[now].price >= highPrice:
+                        #switch.turnOff()
+                        shouldBeOn=False
+                    #To avoid switching on/of
+                    if shouldBeOn:
+                        switch.turnOn()
+                    else:
+                        switch.turnOff()
 
 
 
@@ -353,7 +361,7 @@ nowTime = MyDateTime()
 nowTime.setNow()
 
 # Remove the following comment if you want to simulate savings
-#mySpotData.testRunSavings(22000/3)
+# mySpotData.testRunSavings(22000/3)
 
 # reading meters in a separate thread to make sure we do it often enough
 # start the reading thread

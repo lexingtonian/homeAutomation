@@ -7,7 +7,7 @@ It has the following functionality:
 
 -it reads a predefined configuration HA_Config.txt file that defines various things, such as rules for electro consumption and the topology of the device network
 
--it can be controlled through email
+-it can be controlled through email where commands are send on the subject field with two terms (target, action)
 
 -it runs until it is shut down through email
 

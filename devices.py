@@ -243,7 +243,7 @@ class DevicePair:
         self.hourNbr = hourNbr
 
     def createSelfReport(self):
-        report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowNbr) + " and " + str(self.highNbr) + ".\n"
+        report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowNbr) + " and " + str(self.highNbr) + " with ontime " + str(self.hourNbr) + ".\n"
         return report
 
 
