@@ -74,9 +74,9 @@ class ShellyDevice(Device):
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
-            printOnTerminal("A Shelly device " + name + " successfully contacted at the address " + address)
+            printOnTerminal("A Shelly device " + name + " successfully created at the address " + address)
         except:
-            printOnTerminal("A Shelly device " + name + " cannot be reached at the address " + address)
+            printOnTerminal("A Shelly device " + name + " cannot be created at the address " + address)
             self.lastConnectionSuccessful = False
             self.alive = False
 
@@ -124,9 +124,9 @@ class ShellyMeter(ShellyDevice):
             self.lastUpdated = datetime.now()
             self.lastConnectionSuccessful = True
             self.lastUpdated = datetime.now()
-            printOnTerminal("A Shelly meter " + name + " successfully contacted at the address " + address)
+            printOnTerminal("A Shelly meter " + name + " successfully created at the address " + address)
         except:
-            printOnTerminal("A Shelly meter " + name + " cannot be reached at the address " + address)
+            printOnTerminal("A Shelly meter " + name + " cannot be created at the address " + address)
             self.lastConnectionSuccessful = False
             self.alive = False
 

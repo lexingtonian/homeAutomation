@@ -350,7 +350,8 @@ try:
 except:
     printOnTerminal("ERROR in password assignment")
 
-#passwordOk = readAndManageConfigurationFile(CONFIGFILE)
+
+forceOnTerminal("Building up the house! Wait ....")
 email = 0
 passwordOk = readAndManageConfigurationFile(CONFIGFILE)
 if passwordOk == False:
@@ -395,4 +396,4 @@ while True:
 
     #Force a smiley on terminal after a succesfull first loop
     if (loop==1):
-        forceOnTerminal(":-)")
+        forceOnTerminal(":-) One successfull round ran. Now we'll just loop on ....")
