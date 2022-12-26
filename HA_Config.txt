@@ -5,33 +5,56 @@
 # CAP vs not is not significant
 #
 # Device  name ip_address type nbr_of_on_hours max_price min_price
-# where
-# -name is the name you will be using addrssing the device
+# where:
+# -name is the name you will be using addressing the device (DO NOT USE RESERVED WORD systemclock)
 # -ip_address is the IP address of that device
 # -type is the kind of device in question; switch or meter
-# -nbr_of_on_hours is the nbr of hours the device needs to stay on in a day; this can be overriden by creating a connection between a meter and a device
-# -max_price is the electricity price above which the device will never be turned on
-# -min_price is the electricity price below which the device will be always on
-# -max an min will not add/reduce hours on time!
-#
-Device Tepseli switch 192.168.1.4 4 99.9 0.05
-Device Mittari meter 192.168.1.5 0 0 0
-Device Dummy meter 192.168.1.6 3 0 0
-Device Insain switch 192.168.1.7 3 0 0
+# S0 here is and example:
+# Device Tepseli switch 192.168.1.4
+# --a new device namer Tepseli, as a shelly switch, ip_number
+# --you can create devices also with wrong or dummy ip adresses -- for testing etc
+# ---------------------------------------------------------------
+Device Tepseli switch 192.168.1.4
+Device Mittari meter 192.168.1.5
+Device Dummy meter 192.168.1.6
+Device Insane switch 192.168.1.7
+Device DiipaDaapa switch 192.168.1.8
+# ---------------------------------------------------------------
 #
 # You can create meter => switch pairs as follows:
-# Pair meter switch on_bracket
+# Pair meter switch min max data(optional)
 # For example:
-# Pair Meter Switch 0 22   -- turns the switch on if temp is between 0 - 22
-# Pairing will override spot data
-Pair Mittari Tepseli 0 20
+# Pair Meter Switch 0 22   -- turns the Switch on if temp of the Meter is between 0 - 22
+#
+# -----------------------------------------------------------------
+Pair Mittari Insane 0 22
+# -----------------------------------------------------------------
+#
+# There are a few reserved pairing words
+# systemclock    --can be used as a "meter" that provides hours from 0 - 23
+# spotdata       --can be user as a "meter" to get data from European energy prices:
+#                --if spot data used, the third value defines hours on during the day
+#
+# Examples:
+# Pair Systemclock Tepseli 6 12
+# ==> Turns Tepseli on between 6 and 12 every day
+#
+# Pair Spotdata Tepseli 0.01 0.99 6
+# ==> Turns Tepseli on for six hour aday during the cheapest hours; however, if price < 0.01 then always on; if >0.99 never on
 #
 #
-# Email settings; password is a user prompt
-# system's account, imap, port, smtp, port, and account where to send reports and then the list of accepted additional accounts from where one can send commands from
+# -----------------------------------------------------------------
+Pair systemclock Insane 6 21
+Pair spotdata Tepseli 0.01 0.99 6
+# -----------------------------------------------------------------
+#
+# Email settings; password is a user prompt. Email is defined as follows:
+# Email system's account, imap, port, smtp, port, and account where to send reports and then the list of accepted additional accounts from where one can send commands from
 Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari@linux.com dummy@dymmy.com
 #
 # a bunch of common variables
 # Common system_update_interval_in_sec daytime_tax nighttime_tax
+# -----------------------------------------------------------------
 Common 5 0.033728 0.014508
+# -----------------------------------------------------------------
 

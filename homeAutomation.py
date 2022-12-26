@@ -18,7 +18,7 @@ import time
 import sys
 from dateTimeConversions import MyDateTime
 from spotData import SpotData
-from devices import ShellySwitch, ShellyMeter, ShellyDevicePair
+from devices import ShellySwitch, ShellyMeter, DevicePair
 from mailManagement import haMail
 import getpass
 import threading
@@ -52,10 +52,10 @@ def printDeviceDayPlan(msd, d):
 # NOTE: we read meters, such as temp meters by polling in this separate thread
 # e.g Shelly meters are on ONLY when temperature has recently changed
 # if no change recently, they are in sleep and cannot be contacted
-def thread_function(name):
+def readMeters(name):
     while True:
         time.sleep(1)
-        for x in shellyDevices:
+        for x in myDevices:
             if isinstance(x, ShellyMeter):
                 x.getTemperature()
         global stopThreads
@@ -76,13 +76,14 @@ def refreshSpotData(mySpotData):
 
 
 def readAndManageConfigurationFile(filename):
-    global shellyDevicePairs
-    global shellyDevices
+    global myDevicePairs
+    global myDevices
     global email
     global mySpotData
+    global updateInterval
 
-    shellyDevices.clear()
-    shellyDevicePairs.clear()
+    myDevices.clear()
+    myDevicePairs.clear()
 
     try:
         f = open(filename, "r")
@@ -99,14 +100,11 @@ def readAndManageConfigurationFile(filename):
                 deviceName = res[1]
                 deviceType = res[2]
                 ipAddress = res[3]
-                nbrOfHours = int(res[4])
-                highPrice = float(res[5])
-                lowPrice = float(res[6])
                 printOnTerminal("Creating device: " + deviceName)
                 if deviceType == "switch":
-                    shellyDevices.append(ShellySwitch(deviceName, ipAddress, nbrOfHours,highPrice,lowPrice))
+                    myDevices.append(ShellySwitch(deviceName, ipAddress))
                 elif deviceType == "meter":
-                    shellyDevices.append(ShellyMeter(deviceName, ipAddress))
+                    myDevices.append(ShellyMeter(deviceName, ipAddress))
             elif res[0]=="Email":
                 emailAccount = res[1]
                 emailPassword = passwrd  #note: not from file but a user prompt
@@ -142,122 +140,102 @@ def readAndManageConfigurationFile(filename):
             elif res[0]=="Pair":
                 meterName = res[1]
                 switchName = res[2]
-                lo = int(res[3])
-                hi = int(res[4])
-                shellyDevicePairs.append(ShellyDevicePair(meterName, switchName,lo, hi))
+                lo = float(res[3])
+                hi = float(res[4])
+                try:
+                    hours = int(res[5])
+                except:
+                    hours = 0
+                myDevicePairs.append(DevicePair(meterName, switchName, lo, hi, hours))
+                printOnTerminal("Pair created between " + meterName + " and " +  switchName + " with values " + str(lo) + "-"+str(hi) + " and hour " + str(hours))
 
     return(emailPasswordOK)
 
+# This function verifies that the device in question is pared with something else
+def isPairedDevice(device, devicePairs):
+    for pair in devicePairs:
+        if device.getName() == pair.switchName:
+            return True
+        if device.getName() == pair.meterName:
+            return True
+    return False
 
-# main program starts here ----------------------------------------------------------------------------------
-# main program starts here ----------------------------------------------------------------------------------
-# main program starts here ----------------------------------------------------------------------------------
+# go through meter-switch pairs and set switches based on data from meters
+def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
+    for pair in myDevicePairs:
+        # find devices in that pair
+        #find the meter
+        for meter in myDevices:
+            if isinstance(meter, ShellyMeter) and meter.getName() == pair.meterName:
+                # now meter is the meter that adjusts
+                # find a switch
+                for switch in myDevices:
+                    if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                        #at this point meter and switch are pairs to be adjusted
+                        #then adjust accoriding to the binding
+                        printOnTerminal("Found a meter-switch pair to adjust")
+                        lowTemp = pair.lowNbr
+                        highTemp = pair.highNbr
+                        tempNow = meter.getTemperature()
+                        #Say, tempNow is 20 and min max are 0 22, then turn on
+                        if tempNow>lowTemp and tempNow<highTemp:
+                            switch.turnOn()
+                            printOnTerminal("Adjust " + switch.name + " ON based on the reading from " + meter.name)
+                        else:
+                            switch.turnOff()
+                            printOnTerminal("Adjust " + switch.name + " OFF based on the reading from "+  meter.name)
 
-shellyDevices = []
-shellyDevicePairs = []
-updateInterval = 5
-mySpotData = 0
+        # then, separately, look for switch - system clock pairs; systemclock is handled as a meter
+        # in these cases a switch is turned on/of based on time
+        if pair.meterName == "systemclock":
+            for switch in myDevices:
+                if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                    printOnTerminal("Found a systemclock-switch pair to adjust")
+                    start = pair.lowNbr  # has actually nothing to do with themp, but just jusing the same variable name
+                    end = pair.highNbr
+                    if start<end: #i.e. happens during the same day; e.g. 8 16
+                        if start < now < end:
+                            switch.turnOn()
+                            printOnTerminal("Adjust " + switch.name + " ON  based on the reading from the systemclock: " + str(now))
+                        else:
+                            switch.turnOff()
+                            printOnTerminal("Adjust " + switch.name + " OFF based on the reading from the systemclock: " + str(now))
+                    else: #i.e. starts today, continues tomorrow; e.g. 16 8
+                        if end < now < start:
+                            switch.turnOff()
+                            printOnTerminal("Adjust " + switch.name + " OFF  based on the reading from the systemclock: " + str(now))
+                        else:
+                            switch.turnOn()
+                            printOnTerminal("Adjust " + switch.name + " ON based on the reading from the systemclock: " + str(now))
 
-# Get password for email from the command line
-try:
-    passwrd = getpass.getpass()
-except:
-    printOnTerminal("ERROR in password assignment")
+            # then, separately, look for the European spot data - switch pairs; spot data is handled as a meter
+            # in these cases a switch is turned on/of based on settings
+            if pair.meterName == "spotdata":
+                for switch in myDevices:
+                    if isinstance(switch, ShellySwitch) and switch.getName() == pair.switchName:
+                        printOnTerminal("Found a spotdata-switch pair to adjust")
+                        lowPrice = pair.lowNbr
+                        highPrice = pair.highNbr
+                        hours = pair.hourNbr
+                        end = pair.highNbr
+                        if mySpotData.spotItemArray[now].rank >= hours:
+                            switch.turnOff()
+                        else:
+                            switch.turnOn()
+                        # if price is LOWER than specified in the first value, turn it ALWAYS on
+                        if mySpotData.spotItemArray[now].price <= lowPrice:
+                            switch.turnOn()
+                        # if price is HIGHER than specified in the second value, always turn off
+                        if mySpotData.spotItemArray[now].price <= lowPrice:
+                            switch.turnOff()
 
-passwordOk = readAndManageConfigurationFile(CONFIGFILE)
-if passwordOk == False:
-    printOnTerminal("Wrong Password")
-    exit(0)
 
-nowTime = MyDateTime()
-nowTime.setNow()
 
-# Remove the following comment if you want to simulate savings
-#mySpotData.testRunSavings(22000/3)
 
-# reading meters in a separate thread to make sure we do it often enough
-# start the reading thread
-readingMeters = threading.Thread(target=thread_function, args=(1,))
-readingMeters.start()
-
-printOnTerminal("Starting the loop:")
-loop = 0
-oldHour = -1
-
-# The main program loop starts here
-# ---------------------------------
-while True:
-    #go through every device and do approppriate actions
-    loop = loop +1
-    printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
-    time.sleep(updateInterval)
-
-    # refresh spot data every hour AND
-    # overide manually (email) spot driven settings
-    now = nowTime.getCurrentSystemHour()
-    if (now != oldHour and mySpotData.spotDataOK()):
-        if refreshSpotData(mySpotData):
-            oldHour=now
-        else:
-            printOnTerminal("Cannot refresh Spod Data in the main loop. Trying again!")
-
-        # go through the Spot Data  and turn on devices based on their settings
-        for device in shellyDevices: #loop through devices tyo turn them on/of based on the spot data and settings
-            if isinstance(device, ShellySwitch):
-                debugStr = "Device " + device.name + "heatingHoursRequired: " + str(device.heatingHoursRequired) + " maxPrice: "+  str(device.maxPrice)+  " minPrice: " + str(device.minPrice)
-                #print(debugStr)
-                debugStr = "Device " + device.name + " was turned "
-                #if the current price is below the device min price, turn it always on
-                if mySpotData.spotItemArray[now].price <= device.minPrice:
-                    debugStr = debugStr + "ON because mySpotData.spotItemArray[hourNow].price <= device.minPrice:"
-                    device.turnOn()
-
-                #else, if the current price is above the device max price, turn it off
-                elif mySpotData.spotItemArray[now].price >= device.maxPrice:
-                    debugStr = debugStr + "OFF because mySpotData.spotItemArray[hourNow].price >= device.maxPrice:"
-                    device.turnOff()
-
-                #turn on if spot data rank < heatingHoursRequired
-                elif mySpotData.spotItemArray[now].rank > device.heatingHoursRequired: #turn off the device based on the ranking
-                    debugStr = debugStr + "OFF because mySpotData.spotItemArray[hourNow].rank > device.heatingHoursRequired:"
-                    device.turnOff()
-                else:
-                    device.turnOn()
-                    debugStr = debugStr + "ON because none of the config file terms was met"
-
-                printOnTerminal(debugStr)
-                #print(debugStr)
-
-        # go through meter-switch pairs and set switches
-        #first find pairs
-        for pair in shellyDevicePairs:
-            #find meter
-            #print("Going though meter - switch pairs")
-            meterFound = False
-            switchFound = False
-            #then find devices in that pair
-            for device in shellyDevices:
-                if isinstance(device, ShellyMeter) and device.name == pair.meterName:
-                    meterToRead=device
-                    meterFound = True
-                if isinstance(device, ShellySwitch) and device.name == pair.switchName:
-                    switchToAdjust = device
-                    switchFound = True
-                #print("X, ", device.name, meterFound, switchFound)
-            #then adjust accoriding to the binding
-            if meterFound and switchFound:
-                printOnTerminal("Found a meter-switch pair to adjust")
-                lowTemp = pair.lowTemp
-                highTemp = pair.highTemp
-                tempNow = meterToRead.getTemperature()
-                #Say, tempNow is 20 and min max are 0 22, then turn on
-                if tempNow>lowTemp and tempNow<highTemp:
-                    switchToAdjust.turnOn()
-                    printOnTerminal("Adjust " + switchToAdjust.name + " ON based on the reading from " + meterToRead.name)
-                else:
-                    switchToAdjust.turnOff()
-                    printOnTerminal("Adjust " + switchToAdjust.name + " OFF based on the reading from "+  meterToRead.name)
-
+# read the command queue from email
+# initiate action based on thos read commands
+def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
+    global stopThreads
     #read the command queue from email
     if email.readMailQueuAndReturnCommands():
         device = email.device
@@ -266,11 +244,11 @@ while True:
         if (device == "system"):
             if command == "status":
                 status = "Devices in the system \n"
-                for x in shellyDevices:
+                for x in myDevices:
                     status = status + x.createSelfReport()
                 status = status + "\n"
                 status = status + "Device pairs in the system \n"
-                for x in shellyDevicePairs:
+                for x in myDevicePairs:
                     status = status + x.createSelfReport()
                 email.sendMail("Home Automation System Status", status)
                 email.emptyInbox()
@@ -282,13 +260,13 @@ while True:
                 printOnTerminal("System shutdown started:")
                 # Turn all devices on before shutting down!!
                 printOnTerminal("Turning all devices ON before shutting the system down")
-                for x in shellyDevices:
+                for x in myDevices:
                     if isinstance(x, ShellySwitch):
                         x.turnOn()
 
                 printOnTerminal("...creating shutdown report")
                 status = "I'm about to get shut down -- self destruction started -- nothing you can do about it! \n"
-                for x in shellyDevices:
+                for x in myDevices:
                     status = status + x.createSelfReport()
 
                 printOnTerminal("...sending shutdown report")
@@ -328,14 +306,14 @@ while True:
                 email.emptyInbox()
 
         #go through all devices to find the one command is addressed to
-        for x in shellyDevices:
+        for x in myDevices:
             if x.name == device:
                 #do an approppriate command for the device
                 if command == "turnon":
                     x.turnOn()
                     #send a report after a succesful state change
                     status = "State changed, "+ x.name + " turned on\n"
-                    for x in shellyDevices:
+                    for x in myDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
                     email.emptyInbox()
@@ -344,11 +322,70 @@ while True:
                     x.turnOff()
                     #send a report after a succesful state change
                     status = "State changed, "+ x.name + " turned off\n"
-                    for x in shellyDevices:
+                    for x in myDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
                     email.emptyInbox()
-                    
+
+# main program starts here ----------------------------------------------------------------------------------
+# main program starts here ----------------------------------------------------------------------------------
+# main program starts here ----------------------------------------------------------------------------------
+
+myDevices = []
+myDevicePairs = []
+updateInterval = 5
+mySpotData = 0
+
+# Get password for email from the command line
+try:
+    passwrd = getpass.getpass()
+except:
+    printOnTerminal("ERROR in password assignment")
+
+#passwordOk = readAndManageConfigurationFile(CONFIGFILE)
+email = 0
+passwordOk = readAndManageConfigurationFile(CONFIGFILE)
+if passwordOk == False:
+    printOnTerminal("Wrong Password")
+    exit(0)
+
+nowTime = MyDateTime()
+nowTime.setNow()
+
+# Remove the following comment if you want to simulate savings
+#mySpotData.testRunSavings(22000/3)
+
+# reading meters in a separate thread to make sure we do it often enough
+# start the reading thread
+readingMeters = threading.Thread(target=readMeters, args=(1,))
+readingMeters.start()
+
+printOnTerminal("Starting the loop:")
+loop = 0
+oldHour = -1
+
+# The main program loop starts here
+# ---------------------------------
+while True:
+    #go through every device and do approppriate actions
+    loop = loop +1
+    printOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
+    time.sleep(updateInterval)
+
+    # refresh spot data every hour AND
+    now = nowTime.getCurrentSystemHour()
+    if (now != oldHour and mySpotData.spotDataOK()):
+        if refreshSpotData(mySpotData):
+            oldHour=now
+        else:
+            printOnTerminal("Cannot refresh Spot Data in the main loop. Trying again!")
+
+    # ------------------------------------------------------------------------------------
+    # These three lines + the readMeters thread above is the everlasting main loop!
+    adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now)
+    checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData)
+    # ------------------------------------------------------------------------------------
+
     #Force a smiley on terminal after a succesfull first loop
     if (loop==1):
         forceOnTerminal(":-)")

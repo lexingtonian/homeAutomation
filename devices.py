@@ -160,16 +160,10 @@ class ShellyMeter(ShellyDevice):
 # -------------------------------------------------------------------------
 class ShellySwitch(ShellyDevice):
     isOn = False
-    heatingHoursRequired = 0
-    minPrice = 0    #under which price always on
-    maxPrice = 0    #over which price never on
 
-    def __init__(self, name, address, heatingHoursRequired, max, min):
+    def __init__(self, name, address):
         super().__init__(name, address)
         self.isOn = False
-        self.heatingHoursRequired = heatingHoursRequired
-        self.minPrice = min
-        self.maxPrice = max
         self.temperature = -999.99
         self.humidity = -999.99
 
@@ -234,20 +228,22 @@ class ShellySwitch(ShellyDevice):
 # a meter can control the swicg so, that
 # it is turned ON between temperatures lowTemp - highTemp
 # -------------------------------------------------------------------------
-class ShellyDevicePair:
+class DevicePair:
     meterName = "Not Defined"
     switchName = "Not defined"
-    lowTemp=0
-    highTemp=0
+    lowNbr = 0
+    highNbr = 0
+    hourNbr = 0
 
-    def __init__(self, meterName, switchName, lowTemp, highTemp):
+    def __init__(self, meterName, switchName, lowNbr, highNbr, hourNbr):
         self.meterName = meterName.lower()
         self.switchName = switchName.lower()
-        self.lowTemp = lowTemp
-        self.highTemp = highTemp
+        self.lowNbr = lowNbr
+        self.highNbr = highNbr
+        self.hourNbr = hourNbr
 
     def createSelfReport(self):
-        report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowTemp) + " and " + str(self.highTemp) + " centigrades.\n"
+        report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowNbr) + " and " + str(self.highNbr) + ".\n"
         return report
 
 
