@@ -18,6 +18,7 @@ It is intended to be run on Raspberry Pi or similar. It is implemented in Python
 -It’s currently only for Shelly devices
 
 -It’s been tested with the https://mail.zoho.eu/ email service as it provides machine access; however, it can be controlled from any email
+-With mail, enable IMAP and SMTP (https://www.zoho.com/mail/help/imap-access.html, https://www.zoho.com/mail/help/zoho-smtp.html)
 
 ——
 

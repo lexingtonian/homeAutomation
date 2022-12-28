@@ -45,7 +45,7 @@ Pair Mittari Dummy3 0 22
 #
 # -----------------------------------------------------------------
 #Pair systemclock Tepseli 23 16
-Pair spotdata Tepseli 0.04 0.99 23
+Pair spotdata Tepseli 0.04 0.99 5
 # -----------------------------------------------------------------
 #
 # Email settings; password is a user prompt. Email is defined as follows:
