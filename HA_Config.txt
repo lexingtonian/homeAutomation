@@ -27,7 +27,7 @@ Device Dummy3 switch 192.168.1.8
 # Pair Meter Switch 0 22   -- turns the Switch on if temp of the Meter is between 0 - 22
 #
 # -----------------------------------------------------------------
-Pair Mittari Tepseli 0 22
+Pair Mittari Dummy3 0 22
 # -----------------------------------------------------------------
 #
 # There are a few reserved pairing words
@@ -44,8 +44,8 @@ Pair Mittari Tepseli 0 22
 #
 #
 # -----------------------------------------------------------------
-Pair systemclock Dummy3 14 18
-#Pair spotdata Tepseli 0.04 0.99 20
+#Pair systemclock Tepseli 23 16
+Pair spotdata Tepseli 0.04 0.99 23
 # -----------------------------------------------------------------
 #
 # Email settings; password is a user prompt. Email is defined as follows:

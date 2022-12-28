@@ -160,8 +160,18 @@ def isPairedDevice(device, devicePairs):
             return True
     return False
 
+
+# Turn every switch on
+def turnEverySwitchOn(myDevices):
+    for d in myDevices:
+        if d.isSwitch():
+            d.turnOff()
+            d.turnOn()
+
+
 # go through meter-switch pairs and set switches based on data from meters
 def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
+    printOnTerminal("Adjusting pairs")
     for pair in myDevicePairs:
         # find devices in that pair
         #find the meter
@@ -188,20 +198,21 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
         # then, separately, look for switch - system clock pairs; systemclock is handled as a meter
         # in these cases a switch is turned on/of based on time
         if pair.meterName == "systemclock":
+            printOnTerminal("Adjusting based on systemclock")
             for switch in myDevices:
                 if switch.isSwitch() and switch.getName() == pair.switchName:
                     printOnTerminal("Found a systemclock-switch pair to adjust")
                     start = pair.lowNbr  # has actually nothing to do with themp, but just jusing the same variable name
                     end = pair.highNbr
                     if start<end: #i.e. happens during the same day; e.g. 8 16
-                        if start < now < end:
+                        if start <= now < end:
                             switch.turnOn()
                             printOnTerminal("Adjust " + switch.name + " ON  based on the reading from the systemclock: " + str(now))
                         else:
                             switch.turnOff()
                             printOnTerminal("Adjust " + switch.name + " OFF based on the reading from the systemclock: " + str(now))
                     else: #i.e. starts today, continues tomorrow; e.g. 16 8
-                        if end < now < start:
+                        if end <= now < start:
                             switch.turnOff()
                             printOnTerminal("Adjust " + switch.name + " OFF  based on the reading from the systemclock: " + str(now))
                         else:
@@ -211,6 +222,7 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
         # then, separately, look for the European spot data - switch pairs; spot data is handled as a meter
         # in these cases a switch is turned on/of based on settings
         if pair.meterName == "spotdata":
+            printOnTerminal("Adjusting based on spotdata")
             for switch in myDevices:
                 if switch.isSwitch() and switch.getName() == pair.switchName:
                     printOnTerminal("Found a spotdata-switch pair to adjust")
@@ -218,7 +230,7 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
                     highPrice = pair.highNbr
                     hours = pair.hourNbr
                     shouldBeOn = False
-                    if mySpotData.spotItemArray[now].rank >= hours:
+                    if mySpotData.spotItemArray[now].rank > hours:
                         #switch.turnOff()
                         shouldBeOn=False
                     else:
@@ -259,45 +271,40 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
                 for x in myDevicePairs:
                     status = status + x.createSelfReport()
                 email.sendMail("Home Automation System Status", status)
-                email.emptyInbox()
 
             elif command == "reset":
                 email.emptyInbox()
 
             elif command == "shutdown":
-                printOnTerminal("System shutdown started:")
+                forceOnTerminal("System shutdown started:")
                 # Turn all devices on before shutting down!!
-                printOnTerminal("Turning all devices ON before shutting the system down")
-                for x in myDevices:
-                    if x.isSwitch():
-                        x.turnOn()
+                forceOnTerminal("Turning all devices ON before shutting the system down")
+                turnEverySwitchOn(myDevices)
 
-                printOnTerminal("...creating shutdown report")
+                forceOnTerminal("...creating shutdown report")
                 status = "I'm about to get shut down -- self destruction started -- nothing you can do about it! \n"
-                for x in myDevices:
-                    status = status + x.createSelfReport()
+                #for x in myDevices:
+                #    status = status + x.createSelfReport()
 
-                printOnTerminal("...sending shutdown report")
+                forceOnTerminal("...sending shutdown report")
                 email.sendMail("Home Automation System Shutdown", status)
-                printOnTerminal("...reseting command queue")
-                email.emptyInbox()
-                printOnTerminal("...killing threads")
+                forceOnTerminal("...reseting command queue")
+                forceOnTerminal("...killing threads")
                 stopThreads = True
                 readingMeters.join()
-                printOnTerminal("...killing main ... BYE!")
+                forceOnTerminal("...killing main ... BYE!")
                 exit(0)
 
             elif command == "prices":
                 prices = mySpotData.createSpotDataReport()
                 email.sendMail("Home Automation System Report", prices)
-                email.emptyInbox()
 
             elif command == "refresh":
                 status = "I re-run startup routines \n"
                 refreshSpotData(mySpotData)
                 readAndManageConfigurationFile(CONFIGFILE)
+                turnEverySwitchOn(myDevices)
                 email.sendMail("Home Automation System Report", status)
-                email.emptyInbox()
 
             elif command == "help":
                 help = "These are the available commands:\n"
@@ -311,7 +318,6 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
                 help = help + "devicename turnon \n"
                 help = help + "devicename turnoff \n"
                 email.sendMail("Home Automation System Help", help)
-                email.emptyInbox()
 
         #go through all devices to find the one command is addressed to
         for x in myDevices:
@@ -324,7 +330,7 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
                     for x in myDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
-                    email.emptyInbox()
+
 
                 elif command == "turnoff":
                     x.turnOff()
@@ -333,7 +339,7 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
                     for x in myDevices:
                         status = status + x.createSelfReport()
                     email.sendMail("Home Automation System State Change", status)
-                    email.emptyInbox()
+
 
 # main program starts here ----------------------------------------------------------------------------------
 # main program starts here ----------------------------------------------------------------------------------
@@ -351,7 +357,7 @@ except:
     printOnTerminal("ERROR in password assignment")
 
 
-forceOnTerminal("Building up the house! Wait ....")
+forceOnTerminal("Building up the house! v.0.11. Wait ....")
 email = 0
 passwordOk = readAndManageConfigurationFile(CONFIGFILE)
 if passwordOk == False:

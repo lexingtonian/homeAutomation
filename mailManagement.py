@@ -120,7 +120,6 @@ class haMail:
             #run through messages and exit after the first
             for message_id in message_ids[0].split():  # returns all message ids
 
-
                 # for every id get the actual email
                 status, message_data = mail.fetch(message_id, '(RFC822)')
                 actual_message = email.message_from_bytes(message_data[0][1])
@@ -145,6 +144,7 @@ class haMail:
                     self.resetCommandQueue()
                     return False
                 s = str(subject)
+                self.emptyInbox()
                 printOnTerminal("Command received from email: " + s)
 
             #Note indent= only one loop cycle"

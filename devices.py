@@ -174,8 +174,8 @@ class ShellySwitch(ShellyDevice):
     def __init__(self, name, address):
         super().__init__(name, address)
         self.isOn = False
-        self.temperature = -999.99
-        self.humidity = -999.99
+        #self.temperature = -999.99
+        #self.humidity = -999.99
         self.switch = True
         try:
             self.device = ShellyPy.Shelly(self.address)
@@ -255,10 +255,6 @@ class DevicePair:
     def createSelfReport(self):
         report = "Meter " + self.meterName + " controls switch " + self.switchName + " turning it on between " + str(self.lowNbr) + " and " + str(self.highNbr) + " with ontime " + str(self.hourNbr) + ".\n"
         return report
-
-
-
-
 
 
 
