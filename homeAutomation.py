@@ -48,7 +48,7 @@ def printDeviceDayPlan(msd, d):
     printOnTerminal(str2)
 
 
-# Readining meters in a separate thread
+# Reading meters in a separate thread
 # NOTE: we read meters, such as temp meters by polling in this separate thread
 # e.g Shelly meters are on ONLY when temperature has recently changed
 # if no change recently, they are in sleep and cannot be contacted
@@ -58,6 +58,18 @@ def readMeters(name):
         for x in myDevices:
             if x.isMeter():
                 x.getTemperature()
+        global stopThreads
+        if stopThreads:
+            break
+
+
+# Reading input from the terminal
+# --always ready to accept input
+def readTerminal(name):
+    while True:
+        time.sleep(1)
+        i = input("Terminal on: ")
+        print(i)
         global stopThreads
         if stopThreads:
             break
@@ -257,9 +269,10 @@ def adjustSwitchesBasedOnConnectedMeters(myDevices, myDevicePairs, now):
 def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
     global stopThreads
     #read the command queue from email
-    if email.readMailQueuAndReturnCommands():
+    if email.readMailQueueAndReturnCommands():
         device = email.device
         command = email.command
+        forceOnTerminal("Command received over email: " + device + " " + command)
         #see, if command is for the system
         if (device == "system"):
             if command == "status":
@@ -344,11 +357,11 @@ def checkEmailForNewCommands(email, myDevices, myDevicePairs, mySpotData):
 # main program starts here ----------------------------------------------------------------------------------
 # main program starts here ----------------------------------------------------------------------------------
 # main program starts here ----------------------------------------------------------------------------------
-
+ECHO = False
 myDevices = []
 myDevicePairs = []
 updateInterval = 5
-mySpotData = 0
+mySpotData = []
 
 # Get password for email from the command line
 try:
@@ -357,11 +370,12 @@ except:
     printOnTerminal("ERROR in password assignment")
 
 
-forceOnTerminal("Building up the house! v.0.11. Wait ....")
+forceOnTerminal("Rev'n up the motor scooters! v.0.11. Wait ....")
 email = 0
 passwordOk = readAndManageConfigurationFile(CONFIGFILE)
 if passwordOk == False:
-    printOnTerminal("Wrong Password")
+    forceOnTerminal("Wrong password or mail address")
+    forceOnTerminal("....exiting")
     exit(0)
 
 nowTime = MyDateTime()
@@ -373,6 +387,12 @@ nowTime.setNow()
 # reading meters in a separate thread to make sure we do it often enough
 readingMeters = threading.Thread(target=readMeters, args=(1,))
 readingMeters.start()
+
+#readingTerminal = threading.Thread(target=readTerminal, args=(1,))
+#readingTerminal.start()
+
+
+
 
 printOnTerminal("Starting the loop:")
 loop = 0
@@ -402,4 +422,6 @@ while True:
 
     #Force a smiley on terminal after a succesfull first loop
     if (loop==1):
-        forceOnTerminal(":-) One successfull round ran. Now we'll just loop on ....")
+        forceOnTerminal(":-) Josie is home! Now we'll just loop on ....")
+        forceOnTerminal(("For help, send system help on subject field to ") + email.emailAccount)
+        forceOnTerminal(" ")

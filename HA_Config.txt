@@ -14,9 +14,9 @@
 # --a new device namer Tepseli, as a shelly switch, ip_number
 # --you can create devices also with wrong or dummy ip adresses -- for testing etc
 # ---------------------------------------------------------------
-Device Tepseli switch 192.168.1.4
-Device Mittari meter 192.168.1.5
-Device Dummy meter 192.168.1.6
+Device Tepseli switch 192.168.1.201
+Device Mittari meter 192.168.1.202
+Device WhiteShellyMeter meter 192.168.1.203
 Device Dummy2 switch 192.168.1.7
 Device Dummy3 switch 192.168.1.8
 # ---------------------------------------------------------------
@@ -44,8 +44,8 @@ Pair Mittari Dummy3 0 22
 #
 #
 # -----------------------------------------------------------------
-#Pair systemclock Tepseli 23 16
-Pair spotdata Tepseli 0.04 0.99 5
+#Pair systemclock Tepseli 23 17
+Pair spotdata Tepseli 0.02 0.99 10
 # -----------------------------------------------------------------
 #
 # Email settings; password is a user prompt. Email is defined as follows:

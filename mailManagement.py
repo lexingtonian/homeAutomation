@@ -110,7 +110,7 @@ class haMail:
         except:
             printOnTerminal("Cannot send mail")
 
-    def readMailQueuAndReturnCommands(self):
+    def readMailQueueAndReturnCommands(self):
         try:
             mail = imaplib.IMAP4_SSL(self.emailIMAP)
             mail.login(self.emailAccount, self.emailPassword)
@@ -138,8 +138,8 @@ class haMail:
                         printOnTerminal("----Sender: " + sender)
                         abort = False
                 if (abort):
-                    printOnTerminal("Commanding email sent from an unathorized account " +sender + ". Ignoring .....")
-                    r = "Commanding email sent from an unathorized account "+ sender + ". Ignoring ....."
+                    printOnTerminal("Commanding email sent from an unauthorized account " +sender + ". Ignoring .....")
+                    r = "Commanding email sent from an unauthorized account "+ sender + ". Ignoring ....."
                     self.sendReport(r)
                     self.resetCommandQueue()
                     return False
@@ -159,10 +159,11 @@ class haMail:
                 self.command = splits[1]
                 self.device = self.device.lower()
                 self.command = self.command.lower()
+                return True
             else:
                 self.device = "null"
                 self.command = "null"
-            return True
+                return False
 
         except:
             printOnTerminal("Cannot read email and analyze commands x")
