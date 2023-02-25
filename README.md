@@ -57,3 +57,6 @@ Pair SpotData WaterBoiler 0.05 0.75 4
 Pair Systemclock PorchLight 18 6
 
 ==> that would turn on PorchLights between 18 and 6; i.e. for the night
+
+---
+There is also a wacthdog.py Script that can be run in the same or different machine (in the same network). It monitors the Home Automation application, and alerts the user via email if it is down.

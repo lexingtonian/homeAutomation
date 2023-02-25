@@ -53,8 +53,10 @@ Pair spotdata Tepseli 0.02 0.99 10
 Email arinraspberry@zohomail.eu imap.zoho.eu 993 smtp.zoho.eu 465 ari.jaaksi@gmail.com ari@linux.com dummy@dymmy.com
 #
 # a bunch of common variables
-# Common system_update_interval_in_sec daytime_tax nighttime_tax
+# Common system_update_interval_in_sec daytime_tax nighttime_tax watchdog_computer_ip_address (0.0.0.0 -- if not avail)
 # -----------------------------------------------------------------
-Common 5 0.033728 0.014508
+Common 5 0.033728 0.014508 192.168.1.152
 # -----------------------------------------------------------------
+# Mac: 192.168.1.152
+# Rasp: 192.168.1.190
 

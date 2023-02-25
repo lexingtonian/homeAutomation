@@ -23,9 +23,11 @@ from mailManagement import haMail
 import getpass
 import threading
 from debugTools import *
+from interprocessCommunication import Computer
 
 CONFIGFILE = "HA_Config.txt"
 stopThreads = False
+WATCHDOG_PORT = 12345
 
 
 # Only to show daily proces on screen
@@ -74,6 +76,19 @@ def readTerminal(name):
         if stopThreads:
             break
 
+# send a message to a separate watchdog computer
+# send every 15 seconds
+def pingWatchdog(comp):
+    counter = 0
+    while True:
+        time.sleep(15)
+        printOnTerminal("Contacting watchdog ... ")
+        comp.sendMessage("ping " + str(counter))
+        printOnTerminal(".... watchdog contacted.")
+        counter = counter +1
+        global stopThreads
+        if stopThreads:
+            break
 
 # Re-read price data, add approppriate tax
 def refreshSpotData(mySpotData):
@@ -106,9 +121,10 @@ def readAndManageConfigurationFile(filename):
 
     acList = []
     for x in f:
+        x = x.lower()
         if x[0]!="#" and x[0]!='\n':
             res = x.split()
-            if res[0]=="Device":
+            if res[0]=="device":
                 deviceName = res[1]
                 deviceType = res[2]
                 ipAddress = res[3]
@@ -117,7 +133,7 @@ def readAndManageConfigurationFile(filename):
                     myDevices.append(ShellySwitch(deviceName, ipAddress))
                 elif deviceType == "meter":
                     myDevices.append(ShellyMeter(deviceName, ipAddress))
-            elif res[0]=="Email":
+            elif res[0]=="email":
                 emailAccount = res[1]
                 emailPassword = passwrd  #note: not from file but a user prompt
                 emailIMAP = res[2]
@@ -127,7 +143,7 @@ def readAndManageConfigurationFile(filename):
                 emailRecipient = res[6]
                 printOnTerminal("Creating account list")
                 i=0
-                #the main account is always firt marked as emailRecipient, and then the main mail account
+                #the main account is always first marked as emailRecipient, and then the main mail account
                 acList.append(emailRecipient)
                 acList.append(emailAccount)
                 #then add the rest, if any
@@ -140,16 +156,27 @@ def readAndManageConfigurationFile(filename):
                 email = haMail(emailAccount, emailPassword, emailIMAP, emailIMAPPort, emailSMTP, emailSMTPPort,emailRecipient, acList)
                 emailPasswordOK = email.verifyEmail()
                 email.emptyInbox()
-            elif res[0]=="Common":
+                #send email credentials to the watchdog computer
+                printOnTerminal("Sending email credentials to the watchdog")
+                watchdogComputer.sendMessage("password " + passwrd)
+                time.sleep(2)
+                watchdogComputer.sendMessage(x)
+            elif res[0]=="common":
                 updateInterval = int(res[1])
                 daytimeTax = float(res[2])
                 nightimeTax = float(res[3])
-                printOnTerminal("Creating Spot Data with day tax at " + str(daytimeTax) + " and night tax at " + str(nightimeTax))
+                watchdogIPAddress = res[4]
+                #watchdogPort = int(res[5])
+                watchdogPort = WATCHDOG_PORT
+                printOnTerminal("Creating Spot Data with day tax at " + str(daytimeTax) + " and night tax at " + str(nightimeTax) + " with a watchdog computer IP address at " + watchdogIPAddress)
                 mySpotData = SpotData(daytimeTax,nightimeTax)
                 mySpotData.populateSpotData()
                 mySpotData.addTax()
                 mySpotData.printSpotDataArray()
-            elif res[0]=="Pair":
+                #watchdogComputer = Computer(watchdogIPAddress,watchdogPort)
+                watchdogComputer.setHostAndPort(watchdogIPAddress,watchdogPort)
+                watchdogComputer.sendMessage("Me wants to be a human and feel!")
+            elif res[0]=="pair":
                 meterName = res[1]
                 switchName = res[2]
                 lo = float(res[3])
@@ -362,6 +389,8 @@ myDevices = []
 myDevicePairs = []
 updateInterval = 5
 mySpotData = []
+watchdogComputer = Computer("0.0.0.0", 0)
+
 
 # Get password for email from the command line
 try:
@@ -388,22 +417,27 @@ nowTime.setNow()
 readingMeters = threading.Thread(target=readMeters, args=(1,))
 readingMeters.start()
 
-#readingTerminal = threading.Thread(target=readTerminal, args=(1,))
-#readingTerminal.start()
+# sending an alive message to the watchdog in a separate thread
+communicateWatchdog = threading.Thread(target=pingWatchdog, args=(watchdogComputer,))
+communicateWatchdog.start()
 
-
+#Refresh the system to make sure, wtachdog has all infomration needed
+refreshSpotData(mySpotData)
+readAndManageConfigurationFile(CONFIGFILE)
+turnEverySwitchOn(myDevices)
 
 
 printOnTerminal("Starting the loop:")
 loop = 0
 oldHour = -1
+startTime = nowTime.getCurrentSystemTimeString()
 
 # The main program loop starts here
 # ---------------------------------
 while True:
     #go through every device and do approppriate actions
     loop = loop +1
-    forceOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString())
+    forceOnTerminal("In the loop #" +str(loop) + " at "+ nowTime.getCurrentSystemTimeString() + ". System running since " + startTime)
     time.sleep(updateInterval)
 
     # refresh spot data every hour AND

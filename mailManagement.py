@@ -77,6 +77,7 @@ class haMail:
         msg['Subject'] =  Header(report, 'utf-8')
         msg['From'] = formataddr((str(Header(sender_title, 'utf-8')), sender))
         msg['To'] = recipient
+        printOnTerminal("Sending report " + report + " to: " +  recipient)
         try:
             # Create server object with SSL option
             server = smtplib.SMTP_SSL(self.emailIMAP, self.emailSMTPPort)
@@ -85,6 +86,7 @@ class haMail:
             server.login(self.emailAccount, self.emailPassword)
             server.sendmail(sender, [recipient], msg.as_string())
             server.quit()
+            printOnTerminal("Report sent!")
         except:
             printOnTerminal("Cannot send report!")
 
